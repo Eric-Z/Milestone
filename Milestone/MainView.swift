@@ -1,38 +1,39 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
+struct MainView: View {
+    
     @Query private var milestones: [Milestone]
     @State private var selectedTag: String = "所有标签"
     @State private var showingAddSheet = false
     
-    let tags = ["所有标签", "#标签", "#标签", "#标签", "#标签", "#标签"]
-    
-    var filteredMilestones: [Milestone] {
-        if selectedTag == "所有标签" {
-            return milestones
-        }
-        return milestones.filter { $0.tag == selectedTag }
-    }
-    
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             MainHeaderView()
-        }
-        Spacer()
-    }
-    
-    private func deleteMilestones(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(filteredMilestones[index])
+                .padding(.horizontal, 28)
+                .padding(.vertical, 12)
+            
+            if (milestones.isEmpty) {
+                NoDataView()
+                    .padding(.horizontal, 20)
+            } else {
+                MainTagView(selectedTag: $selectedTag)
             }
         }
+        Spacer()
     }
 }
 
 #Preview {
-    ContentView()
-        .modelContainer(for: Milestone.self, inMemory: true)
+    do {
+        let container = try ModelContainer(for: Milestone.self, configurations: .init(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+        
+        context.insert(Milestone(title: "北海道之行", tag: "旅游", remark: "", date: Date()))
+        context.insert(Milestone(title: "庄慧的生日", tag: "生日", remark: "", date: Date()))
+        
+        return MainView().modelContainer(container)
+    } catch {
+        return Text("无法创建 ModelContainer")
+    }
 }
