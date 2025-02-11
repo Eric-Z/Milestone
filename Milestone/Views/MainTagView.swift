@@ -20,13 +20,13 @@ struct MainTagView: View {
                                 .font(.system(size: 14))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 7)
-                                .background(selectedTag == tag ? .accentColor : Color.tag)
+                                .background(selectedTag == tag ? .accent : Color.tag)
                                 .foregroundColor(selectedTag == tag ? .white : .grayText)
                                 .cornerRadius(8)
                         }
                         .overlay (
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(selectedTag == tag ? .accent : Color.grayborder, lineWidth: 1)
+                                .stroke(selectedTag == tag ? .accent : .grayBorder, lineWidth: 1)
                         )
                     }
                 }

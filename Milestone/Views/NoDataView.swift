@@ -6,7 +6,7 @@ struct NoDataView: View {
             // 虚线边框
             RoundedRectangle(cornerRadius: 21)
                 .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [10]))
-                .foregroundStyle(.grayborder)
+                .foregroundStyle(.grayBorder)
             
             // 内容
             VStack(spacing: 0) {

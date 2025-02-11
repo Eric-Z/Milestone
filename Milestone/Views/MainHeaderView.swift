@@ -1,9 +1,8 @@
 import SwiftUI
-import SwiftData
 
 struct MainHeaderView: View {
     
-    @Query private var milestones: [Milestone]
+    @State var milestones: [Milestone]
     
     var body: some View {
         VStack {
@@ -25,20 +24,5 @@ struct MainHeaderView: View {
                 }
             }
         }
-    }
-}
-
-#Preview {
-    do {
-        let container = try ModelContainer(for: Milestone.self, configurations: .init(isStoredInMemoryOnly: true))
-        let context = container.mainContext
-        
-        context.insert(Milestone(title: "北海道之行", tag: "旅游", remark: "", date: Date()))
-        context.insert(Milestone(title: "庄慧的生日", tag: "生日", remark: "", date: Date()))
-        
-        return MainHeaderView()
-            .modelContainer(container)
-    } catch {
-        return Text("无法创建 ModelContainer")
     }
 }
