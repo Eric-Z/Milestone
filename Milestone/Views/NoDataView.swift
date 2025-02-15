@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct NoDataView: View {
+    
     var body: some View {
         ZStack {
             // 虚线边框
@@ -20,8 +21,4 @@ struct NoDataView: View {
             }
         }
     }
-}
-
-#Preview {
-    NoDataView()
 }

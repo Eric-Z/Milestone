@@ -29,7 +29,7 @@ struct MainMilestoneView: View {
                 
                 HStack(spacing: 0) {
                     if (!milestone.tag.isEmpty) {
-                        Text("#" + milestone.tag)
+                        Text(milestone.tag)
                             .font(.system(size: 12))
                             .foregroundStyle(.grayText)
                     }

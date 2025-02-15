@@ -1,10 +1,8 @@
 import SwiftUI
-import SwiftData
 import Foundation
 
 struct MainScrollMilestoneView: View {
     
-    @Environment(\.modelContext) private var modelContext
     @State var milestones: [Milestone]
     @Binding var selectedTag: String
     
@@ -18,10 +16,10 @@ struct MainScrollMilestoneView: View {
     
     var filterAndSortMilestone: [Milestone] {
         var filteredMilestones = [Milestone]()
-        if (selectedTag == "所有标签") {
+        if (selectedTag == "#所有标签") {
             filteredMilestones = milestones
         } else {
-            filteredMilestones = milestones.filter { "#" + $0.tag == selectedTag }
+            filteredMilestones = milestones.filter { $0.tag == selectedTag }
         }
         
         // 按照日期排序
