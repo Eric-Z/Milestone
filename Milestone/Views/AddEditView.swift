@@ -1,8 +1,9 @@
 import SwiftUI
 import SwiftData
 
-struct AddView: View {
+struct AddEditView: View {
     
+    @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
     @Query(sort: \Tag.content, order: .forward) private var tags: [Tag]
     
@@ -11,10 +12,13 @@ struct AddView: View {
     @State private var date: Date = Date()
     @State private var selectedTag: String = ""
     
+    @State private var showAlert = false
+    
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Button("取消") {
+                    dismiss()
                 }
                 
                 Spacer()
@@ -25,6 +29,18 @@ struct AddView: View {
                 Spacer()
                 
                 Button("保存") {
+                    showAlert = title.isEmpty
+                    
+                    if (!showAlert) {
+                        let newMilestone = Milestone(title: title, tag: "#" + selectedTag, remark: remark, date: date)
+                        modelContext.insert(newMilestone)
+                        dismiss()
+                    }
+                }
+                .alert(isPresented: $showAlert) { // 添加警报
+                    Alert(title: Text("错误"),
+                          message: Text("标题不能为空"),
+                          dismissButton: .default(Text("确定")))
                 }
             }
             .padding(.horizontal, 16)
@@ -95,21 +111,40 @@ struct AddView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
-                    ForEach(tags, id: \.self) { tag in
+                    ForEach(filterTag, id: \.self) { tag in
                         Button(action: {
-                            selectedTag = tag.content
+                            selectedTag = String(tag.content.dropFirst())
                         }) {
                             Text(tag.content)
                                 .font(.system(size: 14))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 7)
-                                .background(selectedTag == tag.content ? .accent : Color.tag)
-                                .foregroundColor(selectedTag == tag.content ? .white : .grayText)
+                                .background("#" + selectedTag == tag.content ? .accent : Color.tag)
+                                .foregroundColor("#" + selectedTag == tag.content ? .white : .grayText)
                                 .cornerRadius(8)
                         }
                         .overlay (
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(selectedTag == tag.content ? .accent : .grayBorder, lineWidth: 1)
+                        )
+                    }
+                    
+                    let newTagMode = tags.filter { $0.content == "#" + selectedTag }.isEmpty
+                    if (newTagMode && !selectedTag.isEmpty) {
+                        Button(action: {
+                            modelContext.insert(Tag(content: "#" + selectedTag))
+                        }) {
+                            Text("+ 创建\" \(selectedTag) \"")
+                                .font(.system(size: 14))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 7)
+                                .background(Color.newTag)
+                                .foregroundColor(.accent)
+                                .cornerRadius(8)
+                        }
+                        .overlay (
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(.accent)
                         )
                     }
                 }
@@ -120,20 +155,12 @@ struct AddView: View {
         }
         .padding(.horizontal, 14)
     }
-}
-
-#Preview {
-    do {
-        let container = try ModelContainer(for: Tag.self, configurations: .init(isStoredInMemoryOnly: true))
-        let context = container.mainContext
-        
-        context.insert(Tag(content: "#旅游"))
-        context.insert(Tag(content: "#生日"))
-        context.insert(Tag(content: "#假期"))
-        context.insert(Tag(content: "#纪念日"))
-        
-        return AddView().modelContainer(container)
-    } catch {
-        return Text("无法创建 ModelContainer")
+    
+    var filterTag: [Tag] {
+        if self.selectedTag.isEmpty {
+            return tags
+        } else {
+            return tags.filter { $0.content.contains(selectedTag) }
+        }
     }
 }

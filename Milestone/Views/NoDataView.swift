@@ -2,6 +2,8 @@ import SwiftUI
 
 struct NoDataView: View {
     
+    @State private var showAddView = false
+    
     var body: some View {
         ZStack {
             // 虚线边框
@@ -18,6 +20,12 @@ struct NoDataView: View {
                     .foregroundStyle(.grayText)
                     .padding(.top, 20)
                 Spacer()
+            }
+            .onTapGesture {
+                showAddView = true
+            }
+            .sheet(isPresented: $showAddView) {
+                AddEditView()
             }
         }
     }

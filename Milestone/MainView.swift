@@ -6,11 +6,11 @@ struct MainView: View {
     
     @Environment(\.modelContext) var modelContext
     
-    @Query private var milestones: [Milestone]
+    @Query(sort: \Milestone.date, order: .forward) private var milestones: [Milestone]
     @Query(sort: \Tag.content, order: .forward) private var tags: [Tag]
     
     @State private var selectedTag: String = "#所有标签"
-    @State private var showingAddSheet = false
+    @State private var showAddView = false
     
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("isDarkMode") private var isDarkMode = false
@@ -19,30 +19,164 @@ struct MainView: View {
         ZStack(alignment: .topLeading) {
             VStack(spacing: 0) {
                 HStack {
-                    MainHeaderView(milestones: milestones)
-                    
-                    Spacer()
-                    
-                    Button {
-                        isDarkMode.toggle()
-                        setAppearance()
-                    } label: {
-                        Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(isDarkMode ? .yellow : .primary)
+                    // 主题栏
+                    VStack(spacing: 0) {
+                        HStack(spacing: 0) {
+                            Text("MileStone")
+                                .font(.system(.largeTitle, design: .rounded))
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        
+                        if (!milestones.isEmpty) {
+                            HStack {
+                                Text("\(milestones.count) 个里程碑")
+                                    .font(.system(size: 14, design: .rounded))
+                                    .foregroundStyle(Color.grayText)
+                                Spacer()
+                            }
+                        }
                     }
-                    .padding(.bottom, 15)
                 }
-                .padding(.horizontal, 28)
+                .padding(.leading, 28)
                 .padding(.vertical, 12)
                 
                 if (milestones.isEmpty) {
                     NoDataView()
                         .padding(.horizontal, 20)
                 } else {
-                    MainTagView(tags: tags, selectedTag: $selectedTag)
+                    // 标签筛选栏
+                    VStack(spacing: 0) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 0) {
+                                Spacer()
+                                    .frame(width: 20)
+                                ForEach(allTags, id: \.self) { tag in
+                                    Button(action: {
+                                        selectedTag = tag.content
+                                    }) {
+                                        Text(tag.content)
+                                            .font(.system(size: 14))
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 7)
+                                            .background(selectedTag == tag.content ? .accent : Color.tag)
+                                            .foregroundColor(selectedTag == tag.content ? .white : .grayText)
+                                            .cornerRadius(8)
+                                    }
+                                    .overlay (
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(selectedTag == tag.content ? .accent : .grayBorder, lineWidth: 1)
+                                    )
+                                    .padding(.trailing, 10)
+                                }
+                            }
+                        }
+                        
+                        HStack {
+                            Group {
+                                if (selectedTag == "#所有标签") {
+                                    Text("已显示所有里程碑。")
+                                } else {
+                                    Text("显示符合所选标签的里程碑：\(selectedTag)。")
+                                }
+                            }
+                            .font(.system(size: 12))
+                            .foregroundStyle(.grayText)
+                            
+                            Spacer()
+                        }
+                        .padding(.leading, 30)
+                        .padding(.top, 10)
+                        .padding(.bottom, 12)
+                    }
                     
-                    MainScrollMilestoneView(milestones: milestones, selectedTag: $selectedTag)
+                    ScrollView {
+                        ForEach(filterAndSortMilestone, id: \.self) { milestone in
+                            HStack(spacing: 0) {
+                                let days = daysBetween(Date(), milestone.date)
+                                
+                                VStack(alignment: .leading, spacing: 0) {
+                                    HStack(spacing: 0) {
+                                        Text(milestone.title)
+                                            .font(.system(size: 16))
+                                        if (days == 0) {
+                                            Text("就是今天！")
+                                                .font(.system(size: 16))
+                                                .foregroundStyle(.accent)
+                                        } else if (days > 0) {
+                                            Text("还有")
+                                                .font(.system(size: 16))
+                                        } else {
+                                            Text("已经")
+                                                .font(.system(size: 16))
+                                        }
+                                    }
+                                    
+                                    HStack(spacing: 0) {
+                                        if (!milestone.tag.isEmpty) {
+                                            Text(milestone.tag)
+                                                .font(.system(size: 12))
+                                                .foregroundStyle(.grayText)
+                                        }
+                                        if (!milestone.tag.isEmpty && !milestone.remark.isEmpty) {
+                                            Text("|")
+                                                .font(.system(size: 8))
+                                                .foregroundColor(.grayBorder)
+                                                .padding(.horizontal, 4)
+                                        }
+                                        if (!milestone.remark.isEmpty) {
+                                            Text(milestone.remark)
+                                                .font(.system(size: 12))
+                                                .foregroundStyle(.grayText)
+                                        }
+                                    }
+                                    .padding(.top, 4)
+                                }
+                                .padding(.vertical, 10)
+                                .padding(.leading, 16)
+                                
+                                Spacer()
+                                
+                                if (days != 0) {
+                                    Text("\(abs(days))")
+                                        .font(.system(size: 18, design: .rounded))
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(days > 0 ? .blueDays: .accent)
+                                    Text("天")
+                                        .font(.system(size: 18, design: .rounded))
+                                        .foregroundStyle(days > 0 ? .blueDays: .accent)
+                                        .padding(.trailing, 16)
+                                } else {
+                                    Text("🎉")
+                                        .font(.system(size: 18, design: .rounded))
+                                        .padding(.trailing, 16)
+                                }
+                            }
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.tag)
+                            )
+                            .contextMenu {
+                                Button {
+                                    
+                                } label: {
+                                    Label("编辑", systemImage: "pencil.tip.crop.circle")
+                                }
+                                Button(role: .destructive) {
+                                    modelContext.delete(milestone)
+                                    do {
+                                        try modelContext.save()
+                                    } catch {
+                                        print("删除失败: \(error.localizedDescription)")
+                                    }
+                                } label: {
+                                    Label("删除", systemImage: "trash")
+                                }
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.bottom, 10)
+                        }
+                    }
                 }
             }
             
@@ -51,24 +185,68 @@ struct MainView: View {
                     Spacer()
                     
                     Button {
-                        
+                        showAddView = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 54))
                     }
                     .padding(.bottom, 40)
-                    
+                }
+                .sheet(isPresented: $showAddView) {
+                    AddEditView()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .onAppear {
-            setAppearance()
+    }
+    
+    /**
+     标签处理
+     */
+    var allTags: [Tag] {
+        if tags.isEmpty {
+            return []
+        }
+        return [Tag(content: "#所有标签") ] + tags
+    }
+    
+    /**
+     按标签筛选并排序
+     */
+    var filterAndSortMilestone: [Milestone] {
+        var filteredMilestones = [Milestone]()
+        if (selectedTag == "#所有标签") {
+            filteredMilestones = milestones
+        } else {
+            filteredMilestones = milestones.filter { $0.tag == selectedTag }
+        }
+        
+        // 按照日期排序
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return filteredMilestones.sorted {
+            let isFirstPast = $0.date < today
+            let isSecondPast = $1.date < today
+            
+            if !isFirstPast && !isSecondPast {
+                return $0.date < $1.date
+            } else if isFirstPast && isSecondPast {
+                return $0.date > $1.date
+            } else {
+                return !isFirstPast
+            }
         }
     }
     
-    private func setAppearance() {
-        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
+    /**
+     查询 2 个日期间的天数
+     */
+    func daysBetween(_ from: Date, _ to: Date) -> Int {
+        let calendar = Calendar.current
+        let startOfFrom = calendar.startOfDay(for: from)
+        let startOfTo = calendar.startOfDay(for: to)
+        let components = calendar.dateComponents([.day], from: startOfFrom, to: startOfTo)
+        return components.day ?? 0
     }
 }
 
