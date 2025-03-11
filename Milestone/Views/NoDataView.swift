@@ -21,12 +21,19 @@ struct NoDataView: View {
                     .padding(.top, 20)
                 Spacer()
             }
-            .onTapGesture {
-                showAddView = true
-            }
-            .sheet(isPresented: $showAddView) {
-                AddEditView()
-            }
+        }
+        .padding(.horizontal, 20)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            showAddView = true
+        }
+        .sheet(isPresented: $showAddView) {
+            AddView()
         }
     }
+}
+
+
+#Preview {
+    NoDataView()
 }

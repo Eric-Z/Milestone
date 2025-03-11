@@ -1,18 +1,28 @@
 import SwiftUI
 import SwiftData
 
-struct AddEditView: View {
-    
+struct EditView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
     @Query(sort: \Tag.content, order: .forward) private var tags: [Tag]
     
-    @State private var title: String = ""
-    @State private var remark: String = ""
-    @State private var date: Date = Date()
-    @State private var selectedTag: String = ""
+    let milestone: Milestone
+    
+    @State private var title: String
+    @State private var remark: String
+    @State private var date: Date
+    @State private var selectedTag: String
     
     @State private var showAlert = false
+    
+    init(milestone: Milestone) {
+        self.milestone = milestone
+        // 初始化 State 变量
+        _title = State(initialValue: milestone.title)
+        _remark = State(initialValue: milestone.remark)
+        _date = State(initialValue: milestone.date)
+        _selectedTag = State(initialValue: String(milestone.tag.dropFirst())) // 去掉 "#" 前缀
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -23,7 +33,7 @@ struct AddEditView: View {
                 
                 Spacer()
                 
-                Text("添加里程碑")
+                Text("编辑里程碑")
                     .font(.system(size: 17))
                 
                 Spacer()
@@ -32,12 +42,16 @@ struct AddEditView: View {
                     showAlert = title.isEmpty
                     
                     if (!showAlert) {
-                        let newMilestone = Milestone(title: title, tag: "#" + selectedTag, remark: remark, date: date)
-                        modelContext.insert(newMilestone)
+                        // 更新现有的 milestone
+                        milestone.title = title
+                        milestone.remark = remark
+                        milestone.date = date
+                        milestone.tag = "#" + selectedTag
+                        
                         dismiss()
                     }
                 }
-                .alert(isPresented: $showAlert) { // 添加警报
+                .alert(isPresented: $showAlert) {
                     Alert(title: Text("错误"),
                           message: Text("标题不能为空"),
                           dismissButton: .default(Text("确定")))
@@ -163,4 +177,4 @@ struct AddEditView: View {
             return tags.filter { $0.content.contains(selectedTag) }
         }
     }
-}
+} 
