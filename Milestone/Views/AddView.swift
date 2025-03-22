@@ -31,8 +31,9 @@ struct AddView: View {
                 Button("保存") {
                     showAlert = title.isEmpty
                     
+                    let finalTag = selectedTag.isEmpty ? "" : "#" + selectedTag
                     if (!showAlert) {
-                        let newMilestone = Milestone(title: title, tag: "#" + selectedTag, remark: remark, date: date)
+                        let newMilestone = Milestone(title: title, tag: finalTag, remark: remark, date: date)
                         modelContext.insert(newMilestone)
                         dismiss()
                     }

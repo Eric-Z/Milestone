@@ -21,15 +21,25 @@ struct NoDataView: View {
                     .padding(.top, 20)
                 Spacer()
             }
+            
+            VStack(spacing: 0) {
+                Spacer()
+                
+                Button {
+                    showAddView = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 54))
+                }
+                .padding(.bottom, 40)
+            }
+            .sheet(isPresented: $showAddView) {
+                AddView()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .padding(.horizontal, 20)
         .contentShape(Rectangle())
-        .onTapGesture {
-            showAddView = true
-        }
-        .sheet(isPresented: $showAddView) {
-            AddView()
-        }
     }
 }
 

@@ -17,11 +17,10 @@ struct EditView: View {
     
     init(milestone: Milestone) {
         self.milestone = milestone
-        // 初始化 State 变量
         _title = State(initialValue: milestone.title)
         _remark = State(initialValue: milestone.remark)
         _date = State(initialValue: milestone.date)
-        _selectedTag = State(initialValue: String(milestone.tag.dropFirst())) // 去掉 "#" 前缀
+        _selectedTag = State(initialValue: String(milestone.tag.dropFirst()))
     }
     
     var body: some View {
@@ -42,11 +41,12 @@ struct EditView: View {
                     showAlert = title.isEmpty
                     
                     if (!showAlert) {
-                        // 更新现有的 milestone
+                        let finalTag = selectedTag.isEmpty ? "" : "#" + selectedTag
+                        
                         milestone.title = title
                         milestone.remark = remark
                         milestone.date = date
-                        milestone.tag = "#" + selectedTag
+                        milestone.tag = finalTag
                         
                         dismiss()
                     }

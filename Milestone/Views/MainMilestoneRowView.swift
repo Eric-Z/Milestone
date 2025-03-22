@@ -4,7 +4,6 @@ import SwiftData
 struct MainMilestoneRowView: View {
     
     var milestone: Milestone
-    @Binding var showEditView: Bool
     @Environment(\.modelContext) private var modelContext
     
     var body: some View {
@@ -72,25 +71,8 @@ struct MainMilestoneRowView: View {
             RoundedRectangle(cornerRadius: 15)
                 .fill(Color.tag)
         )
-        .contextMenu {
-            Button {
-                showEditView = true
-            } label: {
-                Label("编辑", systemImage: "pencil.tip.crop.circle")
-            }
-            
-            Button(role: .destructive) {
-                modelContext.delete(milestone)
-            } label: {
-                Label("删除", systemImage: "trash")
-            }
-        }
-        .sheet(isPresented: $showEditView) {
-            EditView(milestone: milestone)
-        }
     }
     
-    // 辅助函数
     func daysBetween(_ from: Date, _ to: Date) -> Int {
         let calendar = Calendar.current
         let startOfFrom = calendar.startOfDay(for: from)

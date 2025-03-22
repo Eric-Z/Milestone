@@ -1,13 +1,22 @@
 {
-  "originHash" : "439b837a1ac384e9d1e8fc6431308c00b47f1978dafcef482f21e9629026fb89",
+  "originHash" : "f85ec36b55e6c3bddc4e146f4fc996922ed5c902954d863dc9c50577c5aae4c9",
   "pins" : [
     {
-      "identity" : "glur",
+      "identity" : "popupview",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/joogps/Glur.git",
+      "location" : "https://github.com/exyte/PopupView.git",
       "state" : {
-        "revision" : "9e00ff79da318f2c78b749b1027e54a9d4de2e33",
-        "version" : "1.0.4"
+        "revision" : "80023eb0d517812da6b5d9a92ad454679300ab55",
+        "version" : "4.1.0"
+      }
+    },
+    {
+      "identity" : "swiftui-introspect",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/siteline/swiftui-introspect",
+      "state" : {
+        "revision" : "807f73ce09a9b9723f12385e592b4e0aaebd3336",
+        "version" : "1.3.0"
       }
     }
   ],

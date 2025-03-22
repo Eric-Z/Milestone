@@ -5,7 +5,7 @@ import SwiftData
 struct MilestoneApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Milestone.self, Tag.self
+            Milestone.self, Tag.self, Folder.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
 
@@ -18,7 +18,7 @@ struct MilestoneApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView()
+            FolderView()
         }
         .modelContainer(sharedModelContainer)
     }
