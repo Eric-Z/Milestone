@@ -3,14 +3,16 @@ import SwiftData
 
 struct FolderAddView: View {
     
-    @Query(sort: \Folder.sortOrder) private var folders: [Folder]
+    @Query private var folders: [Folder]
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     
-    @Binding var isPresented: Bool
-
     @State private var folderName = ""
     @State private var showAlert = false
     
+    /**
+     检查文件夹名称是否被占用
+     */
     private func exists() -> Bool {
         if folderName == "全部里程碑" || folderName == "最近删除" {
             return true
@@ -24,7 +26,7 @@ struct FolderAddView: View {
                 TextField("名称", text: $folderName)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
-                    .background(AppColors.area_item())
+                    .background(.areaItem)
                     .cornerRadius(21)
                     .padding(.horizontal)
                 
@@ -35,11 +37,11 @@ struct FolderAddView: View {
             .navigationBarItems(
                 leading:
                     Button() {
-                        isPresented = false
+                        dismiss()
                     } label: {
                         Text("取消")
                             .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(AppColors.text_highlight_1())
+                            .foregroundColor(.textHighlight1)
                     }
                     .padding(.leading, 8)
                 ,
@@ -51,12 +53,12 @@ struct FolderAddView: View {
                         } else {
                             let folder = Folder(name: folderName, sortOrder: folders.count + 1)
                             modelContext.insert(folder)
-                            isPresented = false
+                            dismiss()
                         }
                     } label: {
                         Text("完成")
                             .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(AppColors.text_highlight_1())
+                            .foregroundColor(.textHighlight1)
                     }
                     .padding(.trailing, 8)
                     .disabled(folderName.isEmpty)
@@ -75,5 +77,5 @@ struct FolderAddView: View {
 }
 
 #Preview {
-    FolderAddView(isPresented: .constant(true))
+    FolderAddView()
 }
