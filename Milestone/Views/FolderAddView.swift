@@ -9,6 +9,7 @@ struct FolderAddView: View {
     
     @State private var folderName = ""
     @State private var showAlert = false
+    @FocusState private var isFocused: Bool
     
     /**
      检查文件夹名称是否被占用
@@ -23,46 +24,42 @@ struct FolderAddView: View {
     var body: some View {
         NavigationView {
             VStack {
+                HStack {
+                    Button("取消") {
+                        dismiss()
+                    }
+                    
+                    Spacer()
+                    
+                    Text("新建文件夹")
+                        .font(.headline)
+                    
+                    Spacer()
+                    
+                    Button("完成") {
+                        if exists() {
+                            showAlert = true
+                        } else {
+                            let folder = Folder(name: folderName, sortOrder: folders.count + 1)
+                            modelContext.insert(folder)
+                            try? modelContext.save()
+                            dismiss()
+                        }
+                    }
+                    .disabled(folderName.isEmpty)
+                }
+                .padding()
+                
                 TextField("名称", text: $folderName)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
                     .background(.areaItem)
                     .cornerRadius(21)
                     .padding(.horizontal)
+                    .focused($isFocused)
                 
                 Spacer()
             }
-            .padding(.vertical, 4)
-            .navigationBarTitle("新建文件夹", displayMode: .inline)
-            .navigationBarItems(
-                leading:
-                    Button() {
-                        dismiss()
-                    } label: {
-                        Text("取消")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.textHighlight1)
-                    }
-                    .padding(.leading, 8)
-                ,
-                
-                trailing:
-                    Button {
-                        if exists() {
-                            showAlert = true
-                        } else {
-                            let folder = Folder(name: folderName, sortOrder: folders.count + 1)
-                            modelContext.insert(folder)
-                            dismiss()
-                        }
-                    } label: {
-                        Text("完成")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.textHighlight1)
-                    }
-                    .padding(.trailing, 8)
-                    .disabled(folderName.isEmpty)
-            )
             .alert("名称已被使用", isPresented: $showAlert) {
                 Button("好", role: .cancel) {}
             } message: {
@@ -72,6 +69,7 @@ struct FolderAddView: View {
         .onAppear {
             folderName = ""
             showAlert = false
+            isFocused = true
         }
     }
 }

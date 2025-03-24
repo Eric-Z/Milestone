@@ -9,13 +9,13 @@ struct FolderItemView: View {
     var body: some View {
         HStack(alignment:  .center, spacing: 10) {
             Image(systemName: "folder")
-                .font(.system(size: 18, weight: .medium))
+                .font(.system(size: 20, weight: .medium))
                 .kerning(0.18)
                 .foregroundStyle((system && isEditMode) ? .textPlaceholderDisable : .textHighlight1)
                 .frame(width: 24, alignment: .top)
             
             Text(folder.name)
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: FontSize.bodyText   , weight: .medium))
                 .kerning(0.16)
                 .foregroundStyle((system && isEditMode) ? .textPlaceholderDisable : .textBody)
             

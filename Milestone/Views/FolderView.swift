@@ -1,15 +1,16 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct FolderView: View {
     
-    @Query(sort: \Folder.sortOrder) private var folders: [Folder]
+    @Query(sort: \Folder.sortOrder) private var queryFolders: [Folder]
     @Environment(\.modelContext) private var modelContext
-
+    
+    @State private var folders: [Folder] = []
     @State private var showAddFolder = false
     @State private var isEditMode = false
-    @State private var isDragging = false
-    @State private var currentDragFolder: Folder?
+    @State private var draggingItem: Folder?
     
     var body: some View {
         ZStack {
@@ -42,11 +43,11 @@ struct FolderView: View {
                     HStack(alignment: .center, spacing: 5) {
                         let folderSize = folders.capacity + 2
                         Text("\(folderSize)")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.system(size: FontSize.largeNoteNumber, weight: .semibold, design: .rounded))
                             .foregroundColor(.textNote)
                         
                         Text("个文件夹")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: FontSize.largeNoteText, weight: .semibold))
                             .kerning(0.14)
                             .foregroundColor(.textNote)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -57,13 +58,23 @@ struct FolderView: View {
                 .padding(.top, 0)
                 .padding(.bottom, 12)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-
+                
                 // 文件夹
                 ScrollView {
                     FolderItemView(folder: Folder(name: "全部里程碑", sortOrder: 0), system: true, isEditMode: isEditMode)
                     
                     ForEach(folders, id: \.self) { folder in
                         FolderItemView(folder: folder, system: false, isEditMode: isEditMode)
+                            .onDrag {
+                                self.draggingItem = folder
+                                return NSItemProvider(object: folder.name as NSString)
+                            }
+                            .onDrop(of: [.text], delegate: FolderDropDelegate(
+                                target: folder,
+                                modelContext: modelContext,
+                                folders: $folders,
+                                draggingItem: $draggingItem
+                            ))
                     }
                     
                     FolderItemView(folder: Folder(name: "最近删除", sortOrder: -1), system: true, isEditMode: isEditMode)
@@ -75,9 +86,9 @@ struct FolderView: View {
                         showAddFolder = true
                     } label: {
                         Image(systemName: "folder.badge.plus")
-                            .font(.system(size: 17))
+                            .font(.system(size: 20))
                             .foregroundStyle(.textHighlight1)
-                            
+                        
                     }
                     .sheet(isPresented: $showAddFolder) {
                         FolderAddView()
@@ -89,7 +100,7 @@ struct FolderView: View {
                         
                     } label: {
                         Image(systemName: "plus.circle")
-                            .font(.system(size: 17))
+                            .font(.system(size: 20))
                             .foregroundStyle(.textHighlight1)
                     }
                 }
@@ -97,54 +108,62 @@ struct FolderView: View {
                 .padding(.vertical, 11)
             }
         }
-    }
-}
-
-struct DropViewDelegate: DropDelegate {
-    let item: Folder
-    let folders: [Folder]
-    @Binding var currentDrag: Folder?
-    @Binding var isDragging: Bool
-    let modelContext: ModelContext
-    
-    func dropEntered(info: DropInfo) {
-        guard let currentDrag = currentDrag,
-              currentDrag.id != item.id,
-              !item.isSystem && !currentDrag.isSystem else { return }
-        
-        // 获取文件夹的排序顺序
-        let fromIndex = folders.firstIndex { $0.id == currentDrag.id } ?? 0
-        let toIndex = folders.firstIndex { $0.id == item.id } ?? 0
-        
-        // 更新排序顺序
-        if fromIndex != toIndex {
-            // 更新数据库中的排序顺序
-            withAnimation {
-                let sourceOrder = currentDrag.sortOrder
-                
-                // 向上移动
-                if sourceOrder > item.sortOrder {
-                    for folder in folders where folder.sortOrder >= item.sortOrder && folder.sortOrder < sourceOrder {
-                        folder.sortOrder += 1
-                    }
-                    currentDrag.sortOrder = item.sortOrder
-                }
-                // 向下移动
-                else if sourceOrder < item.sortOrder {
-                    for folder in folders where folder.sortOrder <= item.sortOrder && folder.sortOrder > sourceOrder {
-                        folder.sortOrder -= 1
-                    }
-                    currentDrag.sortOrder = item.sortOrder
-                }
-            }
+        .onAppear {
+            folders = queryFolders
+        }
+        .onChange(of: queryFolders) {
+            folders = queryFolders
         }
     }
     
-    func performDrop(info: DropInfo) -> Bool {
-        isDragging = false
-        currentDrag = nil
-        try? modelContext.save()
-        return true
+    struct FolderDropDelegate: DropDelegate {
+        let target: Folder
+        let modelContext: ModelContext
+        
+        @Binding var folders: [Folder]
+        @Binding var draggingItem: Folder?
+        
+        // 使用类来存储状态
+        private let feedbackState = FeedbackState()
+        
+        func dropEntered(info: DropInfo) {
+            guard let draggingItem,
+                  draggingItem != target,
+                  let fromIndex = folders.firstIndex(of: draggingItem),
+                  let toIndex = folders.firstIndex(of: target) else { return }
+            
+            if !feedbackState.didVibrate {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.prepare()
+                impactFeedback.impactOccurred()
+                feedbackState.didVibrate = true
+            }
+            
+            withAnimation {
+                folders.move(fromOffsets: IndexSet(integer: fromIndex), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
+                
+                for (i, folder) in folders.enumerated() {
+                    folder.sortOrder = Int(i + 1)
+                }
+                
+                try? modelContext.save()
+            }
+        }
+        
+        func dropExited(info: DropInfo) {
+            feedbackState.didVibrate = false
+        }
+        
+        func performDrop(info: DropInfo) -> Bool {
+            draggingItem = nil
+            feedbackState.didVibrate = false
+            return true
+        }
+        
+        // 使用类来存储状态，类是引用类型，可以在非mutating方法中修改
+        private class FeedbackState {
+            var didVibrate = false
+        }
     }
 }
 
