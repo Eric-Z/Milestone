@@ -52,11 +52,12 @@ struct FolderAddView: View {
                 
                 TextField("名称", text: $folderName)
                     .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, Distance.itemPaddingH)
                     .background(.areaItem)
                     .cornerRadius(21)
                     .padding(.horizontal)
                     .focused($isFocused)
+                    .font(.system(size: FontSize.bodyText))
                 
                 Spacer()
             }

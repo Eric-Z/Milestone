@@ -15,7 +15,7 @@ struct FolderItemView: View {
                 .frame(width: 24, alignment: .top)
             
             Text(folder.name)
-                .font(.system(size: FontSize.bodyText   , weight: .medium))
+                .font(.system(size: FontSize.bodyText, weight: .medium))
                 .kerning(0.16)
                 .foregroundStyle((system && isEditMode) ? .textPlaceholderDisable : .textBody)
             
@@ -33,11 +33,23 @@ struct FolderItemView: View {
             
             if !system && isEditMode {
                 HStack(spacing: 10) {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 17, weight: .medium))
-                        .kerning(0.18)
-                        .foregroundStyle(.textHighlight1)
-                        .frame(width: 24, alignment: .top)
+                    Menu {
+                        Button(action: {
+                        }) {
+                            Label("重新命名", systemImage: "pencil")
+                        }
+                        
+                        Button(role: .destructive, action: {
+                        }) {
+                            Label("删除", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.system(size: 17, weight: .medium))
+                            .kerning(0.18)
+                            .foregroundStyle(.textHighlight1)
+                            .frame(width: 24, alignment: .top)
+                    }
                     
                     Rectangle()
                         .fill(.textNote.opacity(0.3))
@@ -59,7 +71,7 @@ struct FolderItemView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
         .background(.areaItem)
         .cornerRadius(21)
         .padding(.horizontal, 14)
