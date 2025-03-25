@@ -2,6 +2,8 @@ import SwiftUI
 
 struct FolderItemView: View {
     
+    @Environment(\.modelContext) private var modelContext
+    
     var folder: Folder
     var system = false
     var isEditMode = false
@@ -23,11 +25,11 @@ struct FolderItemView: View {
             
             if !isEditMode {
                 Text("12")
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: FontSize.bodyText, weight: .medium))
                     .foregroundStyle(.textNote)
                 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: FontSize.bodyText, weight: .medium))
                     .foregroundStyle(.textPlaceholderDisable)
             }
             
@@ -40,12 +42,13 @@ struct FolderItemView: View {
                         }
                         
                         Button(role: .destructive, action: {
+                            modelContext.delete(folder)
                         }) {
                             Label("删除", systemImage: "trash")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
-                            .font(.system(size: 17, weight: .medium))
+                            .font(.system(size: FontSize.bodyText, weight: .medium))
                             .kerning(0.18)
                             .foregroundStyle(.textHighlight1)
                             .frame(width: 24, alignment: .top)
@@ -57,7 +60,7 @@ struct FolderItemView: View {
                         .padding(.horizontal, 2)
                     
                     Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 17, weight: .medium))
+                        .font(.system(size: FontSize.bodyText, weight: .medium))
                         .kerning(0.18)
                         .foregroundStyle(.textNote)
                         .frame(width: 24, alignment: .top)
@@ -79,6 +82,6 @@ struct FolderItemView: View {
 }
 
 #Preview {
-    var folder = Folder(name: "全部里程碑", sortOrder:  1)
+    let folder = Folder(name: "全部里程碑", sortOrder:  1)
     FolderItemView(folder: folder)
 }
