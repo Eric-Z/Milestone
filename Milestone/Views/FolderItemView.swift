@@ -7,6 +7,7 @@ struct FolderItemView: View {
     var folder: Folder
     var system = false
     var isEditMode = false
+    @State private var showEditFolder = false
     
     var body: some View {
         HStack(alignment:  .center, spacing: 10) {
@@ -37,6 +38,7 @@ struct FolderItemView: View {
                 HStack(spacing: 10) {
                     Menu {
                         Button(action: {
+                            showEditFolder = true
                         }) {
                             Label("重新命名", systemImage: "pencil")
                         }
@@ -71,6 +73,9 @@ struct FolderItemView: View {
                         .combined(with: AnyTransition.opacity)
                 ))
             }
+        }
+        .sheet(isPresented: $showEditFolder) {
+            FolderEditView(folder: folder)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

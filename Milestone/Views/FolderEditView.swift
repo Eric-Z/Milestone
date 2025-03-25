@@ -7,6 +7,7 @@ struct FolderEditView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
+    var folder: Folder
     @State private var folderName = ""
     @State private var showAlert = false
     @FocusState private var isFocused: Bool
@@ -18,7 +19,7 @@ struct FolderEditView: View {
         if folderName == "全部里程碑" || folderName == "最近删除" {
             return true
         }
-        return folders.contains { $0.name.lowercased() == folderName.lowercased() }
+        return folders.contains { $0.name.lowercased() == folderName.lowercased() && $0.id != folder.id}
     }
     
     var body: some View {
@@ -31,7 +32,7 @@ struct FolderEditView: View {
                     
                     Spacer()
                     
-                    Text("新建文件夹")
+                    Text("重新命名文件夹")
                         .font(.headline)
                     
                     Spacer()
@@ -40,8 +41,7 @@ struct FolderEditView: View {
                         if exists() {
                             showAlert = true
                         } else {
-                            let folder = Folder(name: folderName, sortOrder: folders.count + 1)
-                            modelContext.insert(folder)
+                            folder.name = folderName
                             try? modelContext.save()
                             dismiss()
                         }
@@ -68,7 +68,7 @@ struct FolderEditView: View {
             }
         }
         .onAppear {
-            folderName = ""
+            folderName = folder.name
             showAlert = false
             isFocused = true
         }
@@ -76,5 +76,21 @@ struct FolderEditView: View {
 }
 
 #Preview {
-    FolderAddView()
+    do {
+        let schema = Schema([
+            Folder.self
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+        let context = container.mainContext
+        
+        let folder1 = Folder(name: "生日", sortOrder: 1)
+        let folder2 = Folder(name: "旅游", sortOrder: 2)
+        context.insert(folder1)
+        context.insert(folder2)
+        
+        return FolderEditView(folder: folder1).modelContainer(container)
+    } catch {
+        return Text("无法创建 ModelContainer")
+    }
 }
