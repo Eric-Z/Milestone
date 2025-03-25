@@ -86,7 +86,8 @@ struct FolderView: View {
                         showAddFolder = true
                     } label: {
                         Image(systemName: "folder.badge.plus")
-                            .font(.system(size: 20))
+                            .font(.system(size: FontSize.bodyText))
+                            .imageScale(.large)
                             .foregroundStyle(.textHighlight1)
                         
                     }
@@ -100,7 +101,8 @@ struct FolderView: View {
                         
                     } label: {
                         Image(systemName: "plus.circle")
-                            .font(.system(size: 20))
+                            .font(.system(size: FontSize.bodyText))
+                            .imageScale(.large)
                             .foregroundStyle(.textHighlight1)
                     }
                 }

@@ -12,7 +12,8 @@ struct FolderItemView: View {
     var body: some View {
         HStack(alignment:  .center, spacing: 10) {
             Image(systemName: "folder")
-                .font(.system(size: 20, weight: .medium))
+                .font(.system(size: FontSize.bodyText, weight: .medium))
+                .imageScale(.large)
                 .kerning(0.18)
                 .foregroundStyle((system && isEditMode) ? .textPlaceholderDisable : .textHighlight1)
                 .frame(width: 24, alignment: .top)
@@ -31,6 +32,7 @@ struct FolderItemView: View {
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: FontSize.bodyText, weight: .medium))
+                    .imageScale(.large)
                     .foregroundStyle(.textPlaceholderDisable)
             }
             
@@ -51,7 +53,7 @@ struct FolderItemView: View {
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .font(.system(size: FontSize.bodyText, weight: .medium))
-                            .kerning(0.18)
+                            .imageScale(.large)
                             .foregroundStyle(.textHighlight1)
                             .frame(width: 24, alignment: .top)
                     }
@@ -63,7 +65,7 @@ struct FolderItemView: View {
                     
                     Image(systemName: "line.3.horizontal")
                         .font(.system(size: FontSize.bodyText, weight: .medium))
-                        .kerning(0.18)
+                        .imageScale(.large)
                         .foregroundStyle(.textNote)
                         .frame(width: 24, alignment: .top)
                 }
@@ -79,7 +81,7 @@ struct FolderItemView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
         .background(.areaItem)
         .cornerRadius(21)
         .padding(.horizontal, 14)
