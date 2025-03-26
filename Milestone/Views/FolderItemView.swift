@@ -18,20 +18,26 @@ struct FolderItemView: View {
     // 最大偏移量
     private let maxOffset: CGFloat = 90 // 80 + 10
     
-    // 计算删除按钮的大小，基于滑动距离
+    /**
+     计算删除按钮的大小，基于滑动距离
+     */
     private var deleteButtonScale: CGFloat {
         let currentRatio = min(abs(offset) / maxOffset, 1.0)
         // 从0.5开始变为1.0，使按钮有一个明显的放大效果
         return 0.5 + (0.5 * currentRatio)
     }
     
-    // 计算删除按钮位置的偏移量
+    /**
+     计算删除按钮位置的偏移量
+     */
     private var deleteButtonOffset: CGFloat {
         // 随着滑动增加，按钮应该向左移动以保持间距
         return min(10, 10 * (1 - abs(offset) / maxOffset))
     }
     
-    // 计算删除按钮的透明度，基于滑动距离
+    /**
+     计算删除按钮的透明度，基于滑动距离
+     */
     private var deleteButtonOpacity: Double {
         // 当滑动超过20时才开始显示，并且渐进式增加透明度
         if offset >= 0 { return 0 }
@@ -41,22 +47,20 @@ struct FolderItemView: View {
         
         if abs(offset) < threshold {
             return 0
-        } else if abs(offset) >= threshold + visibleRange {
-            return 1
-        } else {
-            // 线性递增透明度
-            return Double((abs(offset) - threshold) / visibleRange)
         }
+        if abs(offset) >= threshold + visibleRange {
+            return 1
+        }
+        // 线性递增透明度
+        return Double((abs(offset) - threshold) / visibleRange)
     }
     
     var body: some View {
         ZStack(alignment: .trailing) {
-            // 删除按钮背景层 
+            // 删除按钮背景层
             Button {
-                withAnimation(.spring()) {
-                    if !system {
-                        modelContext.delete(folder)
-                    }
+                if !system {
+                    modelContext.delete(folder)
                 }
             } label: {
                 VStack {
@@ -69,8 +73,8 @@ struct FolderItemView: View {
                 .cornerRadius(21)
             }
             .scaleEffect(deleteButtonScale)
-            .opacity(deleteButtonOpacity) // 使用计算属性控制透明度，实现渐变效果
-            .offset(x: -14 - deleteButtonOffset) // 调整位置，考虑外部padding
+            .opacity(deleteButtonOpacity)
+            .offset(x: -14 - deleteButtonOffset)
             
             // 主内容层
             HStack(alignment: .center, spacing: 10) {
@@ -154,18 +158,24 @@ struct FolderItemView: View {
                 DragGesture()
                     .onChanged { gesture in
                         let dragAmount = gesture.translation.width
-                        // 只允许向左滑动
+                        // 允许向左滑动超出最大偏移量，不做限制
                         if dragAmount < 0 {
-                            offset = max(dragAmount, -maxOffset)
+                            // 添加一个阻尼效果，使得超出maxOffset后移动变得更慢
+                            if dragAmount < -maxOffset {
+                                let extraOffset = dragAmount + maxOffset // 额外超出的距离
+                                offset = -maxOffset + (extraOffset * 0.2) // 超出部分只取20%的位移
+                            } else {
+                                offset = dragAmount
+                            }
                         } else if offset != 0 {
                             // 允许用户滑回原位
                             offset = min(0, dragAmount)
                         }
                     }
                     .onEnded { gesture in
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.5)) {
                             if offset < -40 {
-                                // 显示删除按钮
+                                // 无论滑动多远，最终都回弹到maxOffset位置
                                 offset = -maxOffset
                                 showDeleteButton = true
                             } else {
