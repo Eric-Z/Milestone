@@ -11,6 +11,8 @@ struct FolderItemView: View {
     @State private var offset: CGFloat = 0
     @State private var showDeleteButton = false
     @State private var isDeleting = false
+    @State private var deleteScale: CGFloat = 1.0
+    @State private var deleteOffset: CGFloat = 0
     
     // 删除按钮宽度
     private let deleteButtonWidth: CGFloat = 80
@@ -61,10 +63,9 @@ struct FolderItemView: View {
             // 删除按钮背景层
             Button {
                 if !system {
-                    // 触发删除动画
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
                         isDeleting = true
-                        offset = -UIScreen.main.bounds.width // 向左滑出屏幕
+                        deleteScale = 0.01 // 将高度收缩到几乎为0
                     }
                     
                     // 延迟执行实际删除操作
@@ -165,35 +166,41 @@ struct FolderItemView: View {
             .cornerRadius(21)
             .padding(.horizontal, 14)
             .offset(x: offset)
-            .scaleEffect(y: isDeleting ? 0.5 : 1.0)
+            .scaleEffect(y: isDeleting ? deleteScale : 1, anchor: .top)
             .opacity(isDeleting ? 0 : 1)
             .gesture(
                 !system && !isEditMode ?
                 DragGesture()
                     .onChanged { gesture in
                         let dragAmount = gesture.translation.width
-                        // 允许向左滑动超出最大偏移量，不做限制
-                        if dragAmount < 0 {
-                            // 添加一个阻尼效果，使得超出maxOffset后移动变得更慢
-                            if dragAmount < -maxOffset {
-                                let extraOffset = dragAmount + maxOffset // 额外超出的距离
-                                offset = -maxOffset + (extraOffset * 0.2) // 超出部分只取20%的位移
-                            } else {
-                                offset = dragAmount
+                        
+                        withAnimation(.interactiveSpring()) {  // 添加实时动画
+                            if dragAmount < 0 {
+                                // 向左滑动的逻辑保持不变
+                                if dragAmount < -maxOffset {
+                                    let extraOffset = dragAmount + maxOffset
+                                    offset = -maxOffset + (extraOffset * 0.2)
+                                } else {
+                                    offset = dragAmount
+                                }
+                            } else if offset != 0 {
+                                // 向右滑动时，平滑过渡
+                                offset = -maxOffset + dragAmount // 从当前位置开始计算
+                                
+                                // 如果已经滑到接近原位，直接重置状态
+                                if offset > -20 {
+                                    offset = 0
+                                    showDeleteButton = false
+                                }
                             }
-                        } else if offset != 0 {
-                            // 允许用户滑回原位
-                            offset = min(0, dragAmount)
                         }
                     }
                     .onEnded { gesture in
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.5)) {
                             if offset < -40 {
-                                // 无论滑动多远，最终都回弹到maxOffset位置
                                 offset = -maxOffset
                                 showDeleteButton = true
                             } else {
-                                // 恢复原位
                                 offset = 0
                                 showDeleteButton = false
                             }
