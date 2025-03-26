@@ -31,6 +31,24 @@ struct FolderItemView: View {
         return min(10, 10 * (1 - abs(offset) / maxOffset))
     }
     
+    // 计算删除按钮的透明度，基于滑动距离
+    private var deleteButtonOpacity: Double {
+        // 当滑动超过20时才开始显示，并且渐进式增加透明度
+        if offset >= 0 { return 0 }
+        
+        let threshold: CGFloat = 20
+        let visibleRange: CGFloat = 60 // 从开始显示到完全显示的距离
+        
+        if abs(offset) < threshold {
+            return 0
+        } else if abs(offset) >= threshold + visibleRange {
+            return 1
+        } else {
+            // 线性递增透明度
+            return Double((abs(offset) - threshold) / visibleRange)
+        }
+    }
+    
     var body: some View {
         ZStack(alignment: .trailing) {
             // 删除按钮背景层 
@@ -51,7 +69,7 @@ struct FolderItemView: View {
                 .cornerRadius(21)
             }
             .scaleEffect(deleteButtonScale)
-            .opacity(offset < 0 ? 1 : 0) // 只在滑动时显示
+            .opacity(deleteButtonOpacity) // 使用计算属性控制透明度，实现渐变效果
             .offset(x: -14 - deleteButtonOffset) // 调整位置，考虑外部padding
             
             // 主内容层
@@ -145,7 +163,7 @@ struct FolderItemView: View {
                         }
                     }
                     .onEnded { gesture in
-                        withAnimation(.spring()) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                             if offset < -40 {
                                 // 显示删除按钮
                                 offset = -maxOffset
