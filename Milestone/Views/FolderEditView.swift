@@ -29,6 +29,7 @@ struct FolderEditView: View {
                     Button("取消") {
                         dismiss()
                     }
+                    .foregroundStyle(.textHighlight1)
                     
                     Spacer()
                     
@@ -46,6 +47,7 @@ struct FolderEditView: View {
                             dismiss()
                         }
                     }
+                    .foregroundStyle(.textHighlight1)
                     .disabled(folderName.isEmpty)
                 }
                 .padding()
@@ -53,7 +55,7 @@ struct FolderEditView: View {
                 TextField("名称", text: $folderName)
                     .padding(.vertical, 12)
                     .padding(.horizontal, Distance.itemPaddingH)
-                    .background(.areaBackground)
+                    .background(.areaItem)
                     .cornerRadius(21)
                     .padding(.horizontal)
                     .focused($isFocused)

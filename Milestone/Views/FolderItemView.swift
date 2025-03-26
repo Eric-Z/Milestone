@@ -10,6 +10,7 @@ struct FolderItemView: View {
     @State private var showEditFolder = false
     @State private var offset: CGFloat = 0
     @State private var showDeleteButton = false
+    @State private var isDeleting = false
     
     // 删除按钮宽度
     private let deleteButtonWidth: CGFloat = 80
@@ -60,7 +61,18 @@ struct FolderItemView: View {
             // 删除按钮背景层
             Button {
                 if !system {
-                    modelContext.delete(folder)
+                    // 触发删除动画
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isDeleting = true
+                        offset = -UIScreen.main.bounds.width // 向左滑出屏幕
+                    }
+                    
+                    // 延迟执行实际删除操作
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        withAnimation {
+                            modelContext.delete(folder)
+                        }
+                    }
                 }
             } label: {
                 VStack {
@@ -153,6 +165,8 @@ struct FolderItemView: View {
             .cornerRadius(21)
             .padding(.horizontal, 14)
             .offset(x: offset)
+            .scaleEffect(y: isDeleting ? 0.5 : 1.0)
+            .opacity(isDeleting ? 0 : 1)
             .gesture(
                 !system && !isEditMode ?
                 DragGesture()
