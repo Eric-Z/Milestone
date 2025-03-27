@@ -184,8 +184,7 @@ struct FolderItemView: View {
                                     offset = dragAmount
                                 }
                             } else if offset != 0 {
-                                // 向右滑动时，平滑过渡
-                                offset = -maxOffset + dragAmount // 从当前位置开始计算
+                                offset = min(0, offset + dragAmount * 0.5)
                                 
                                 // 如果已经滑到接近原位，直接重置状态
                                 if offset > -20 {
