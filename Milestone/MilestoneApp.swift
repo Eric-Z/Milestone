@@ -18,7 +18,7 @@ struct MilestoneApp: App {
 
     var body: some Scene {
         WindowGroup {
-            FolderView()
+            FolderListView()
         }
         .modelContainer(sharedModelContainer)
     }
