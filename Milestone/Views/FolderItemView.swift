@@ -10,11 +10,11 @@ struct FolderItemView: View {
     
     @State private var showEditFolder = false
     @State private var offset: CGFloat = 0
-    @State private var showDeleteButton = false
     @State private var isDeleting = false
     @State private var deleteScale: CGFloat = 1.0
     @State private var deleteOffset: CGFloat = 0
     @State private var itemHeight: CGFloat = 50
+    @State private var lastDragAmount: CGFloat = 0
     
     // 删除按钮宽度
     private let deleteButtonWidth: CGFloat = 80
@@ -67,7 +67,7 @@ struct FolderItemView: View {
         isDeleting = true
         
         withAnimation(.easeIn(duration: 0.15)) {
-            itemHeight = 1
+            itemHeight = 25
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
@@ -193,19 +193,23 @@ struct FolderItemView: View {
                                             offset = dragAmount
                                         }
                                     } else if offset != 0 {
-                                        let newOffset = max(-maxOffset, min(0, -maxOffset + dragAmount))
-                                        offset = newOffset
+                                        if lastDragAmount < 0 && dragAmount >= 0 && dragAmount < 20 {
+                                            offset = lastDragAmount + (dragAmount - lastDragAmount) * 0.5
+                                        } else {
+                                            offset = min(0, offset + (dragAmount - lastDragAmount) * 0.5)
+                                        }
                                     }
                                 }
+                                lastDragAmount = dragAmount
                             }
                             .onEnded { gesture in
+                                lastDragAmount = 0
+                                
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.5)) {
                                     if offset < -40 {
                                         offset = -maxOffset
-                                        showDeleteButton = true
                                     } else {
                                         offset = 0
-                                        showDeleteButton = false
                                     }
                                 }
                             } : nil
