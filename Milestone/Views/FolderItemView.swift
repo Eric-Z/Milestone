@@ -60,6 +60,26 @@ struct FolderItemView: View {
         return Double((abs(offset) - threshold) / visibleRange)
     }
     
+    /**
+     删除文件夹
+     */
+    private func delete() {
+        isDeleting = true
+        
+        withAnimation(.easeIn(duration: 0.15)) {
+            itemHeight = 1
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.easeIn(duration: 0.05)) {
+                itemHeight = 0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                modelContext.delete(folder)
+            }
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             if !isDeleting {
@@ -164,9 +184,8 @@ struct FolderItemView: View {
                             .onChanged { gesture in
                                 let dragAmount = gesture.translation.width
                                 
-                                withAnimation(.interactiveSpring()) {  // 添加实时动画
+                                withAnimation(.interactiveSpring()) {
                                     if dragAmount < 0 {
-                                        // 向左滑动的逻辑保持不变
                                         if dragAmount < -maxOffset {
                                             let extraOffset = dragAmount + maxOffset
                                             offset = -maxOffset + (extraOffset * 0.2)
@@ -174,13 +193,8 @@ struct FolderItemView: View {
                                             offset = dragAmount
                                         }
                                     } else if offset != 0 {
-                                        offset = min(0, offset + dragAmount * 0.5)
-                                        
-                                        // 如果已经滑到接近原位，直接重置状态
-                                        if offset > -20 {
-                                            offset = 0
-                                            showDeleteButton = false
-                                        }
+                                        let newOffset = max(-maxOffset, min(0, -maxOffset + dragAmount))
+                                        offset = newOffset
                                     }
                                 }
                             }
@@ -202,23 +216,6 @@ struct FolderItemView: View {
         }
         .clipShape(Rectangle())
         .frame(height: itemHeight)
-    }
-    
-    private func delete() {
-        isDeleting = true
-        
-        withAnimation(.easeIn(duration: 0.15)) {
-            itemHeight = 1
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            withAnimation(.easeIn(duration: 0.05)) {
-                itemHeight = 0
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                modelContext.delete(folder)
-            }
-        }
     }
 }
 
