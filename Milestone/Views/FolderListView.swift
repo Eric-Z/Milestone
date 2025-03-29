@@ -27,5 +27,6 @@ struct FolderListView: View {
         }
         .listStyle(.plain)
         .listRowSpacing(10)
+        .animation(.easeInOut, value: allFolders.count)
     }
 }

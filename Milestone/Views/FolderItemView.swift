@@ -48,6 +48,7 @@ struct FolderItemView: View {
                         
                         Button(role: .destructive, action: {
                             modelContext.delete(folder)
+                            try? modelContext.save()
                         }) {
                             Label("删除", systemImage: "trash")
                         }
