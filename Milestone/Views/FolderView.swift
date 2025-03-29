@@ -7,6 +7,7 @@ struct FolderView: View {
     @Query(sort: \Folder.sortOrder) private var folders: [Folder]
     @Environment(\.modelContext) private var modelContext
     
+    @State private var currentEditingFolder: Folder?
     @State private var showAddFolder = false
     @State private var isEditMode = false
     
@@ -61,9 +62,27 @@ struct FolderView: View {
                 FolderItemView(folder: folder, isEditMode: isEditMode)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets())
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            modelContext.delete(folder)
+                            try? modelContext.save()
+                        } label: {
+                            Label("删除", systemImage: "trash")
+                        }
+                        
+                        Button {
+                            currentEditingFolder = folder
+                        } label: {
+                            Label("编辑", systemImage: "pencil")
+                        }
+                        .tint(.blue)
+                    }
             }
             .listRowSpacing(10)
             .listStyle(.plain)
+            .sheet(item: $currentEditingFolder) { folder in
+                FolderEditView(folder: folder)
+            }
             
             // 底部按钮
             HStack(spacing: 0) {
@@ -74,7 +93,6 @@ struct FolderView: View {
                         .font(.system(size: FontSize.bodyText))
                         .imageScale(.large)
                         .foregroundStyle(.textHighlight1)
-                    
                 }
                 .sheet(isPresented: $showAddFolder) {
                     FolderAddView()

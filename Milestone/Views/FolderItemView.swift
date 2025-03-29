@@ -17,13 +17,11 @@ struct FolderItemView: View {
             Image(systemName: "folder")
                 .font(.system(size: FontSize.bodyText, weight: .medium))
                 .imageScale(.large)
-                .kerning(0.18)
                 .foregroundStyle((system && isEditMode) ? .textPlaceholderDisable : .textHighlight1)
                 .frame(width: 24, alignment: .top)
             
             Text(folder.name)
                 .font(.system(size: FontSize.bodyText, weight: .medium))
-                .kerning(0.16)
                 .foregroundStyle((system && isEditMode) ? .textPlaceholderDisable : .textBody)
             
             Spacer()
