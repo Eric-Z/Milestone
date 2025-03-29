@@ -65,13 +65,13 @@ struct FolderItemView: View {
                         .padding(.horizontal, 2)
                     
                     Button {
-
+                        
                     } label: {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: FontSize.bodyText, weight: .medium))
-                        .imageScale(.large)
-                        .foregroundStyle(.textNote)
-                        .frame(width: 24, alignment: .top)
+                        Image(systemName: "line.3.horizontal")
+                            .font(.system(size: FontSize.bodyText, weight: .medium))
+                            .imageScale(.large)
+                            .foregroundStyle(.textNote)
+                            .frame(width: 24, alignment: .top)
                     }
                 }
                 .transition(AnyTransition.asymmetric(
