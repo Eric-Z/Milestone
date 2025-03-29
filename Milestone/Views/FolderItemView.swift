@@ -57,7 +57,7 @@ struct FolderItemView: View {
                             .font(.system(size: FontSize.bodyText, weight: .medium))
                             .imageScale(.large)
                             .foregroundStyle(.textHighlight1)
-                            .frame(width: 24, alignment: .top)
+                            .frame(width: 24, alignment: .center)
                     }
                     
                     Rectangle()
@@ -65,14 +65,12 @@ struct FolderItemView: View {
                         .frame(width: 1, height: 16)
                         .padding(.horizontal, 2)
                     
-                    Button {
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .font(.system(size: FontSize.bodyText, weight: .medium))
-                            .imageScale(.large)
-                            .foregroundStyle(.textNote)
-                            .frame(width: 24, alignment: .top)
-                    }
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: FontSize.bodyText, weight: .medium))
+                        .imageScale(.large)
+                        .foregroundStyle(.textNote)
+                        .frame(width: 24, alignment: .center)
+                        .allowsHitTesting(false)
                 }
                 .transition(AnyTransition.asymmetric(
                     insertion: .move(edge: .trailing),
