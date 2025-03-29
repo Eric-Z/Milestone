@@ -9,14 +9,12 @@ struct FolderListView: View {
     var isEditMode: Bool
     
     var body: some View {
-        List {
-            ForEach(folders, id: \.self) { folder in
-                FolderItemView(folder: folder, isEditMode: isEditMode)
+        ScrollView {
+            VStack(spacing: 10) {
+                ForEach(folders, id: \.self) { folder in
+                    FolderItemView(folder: folder, isEditMode: isEditMode)
+                }
             }
-            .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets())
         }
-        .listRowSpacing(10)
-        .listStyle(.plain)
     }
 }
