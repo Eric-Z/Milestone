@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import UIKit
 
 struct FolderView: View {
     
@@ -58,7 +57,7 @@ struct FolderView: View {
             .frame(maxWidth: .infinity, alignment: .topLeading)
             
             // 文件夹列表
-            FolderListView(folders: folders, isEditMode: isEditMode)
+            FolderListView(isEditMode: isEditMode)
             
             // 底部按钮
             HStack(spacing: 0) {
