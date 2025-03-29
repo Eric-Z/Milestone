@@ -65,7 +65,6 @@ struct FolderItemView: View {
                         .padding(.horizontal, 2)
                     
                     Button {
-                        
                     } label: {
                         Image(systemName: "line.3.horizontal")
                             .font(.system(size: FontSize.bodyText, weight: .medium))

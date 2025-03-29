@@ -5,7 +5,7 @@ import SwiftData
 struct MilestoneApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Milestone.self, Tag.self, Folder.self
+            Milestone.self, Folder.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
