@@ -5,7 +5,6 @@ struct FolderItemView: View {
     @Environment(\.modelContext) private var modelContext
     
     var folder: Folder
-    var system = false
     var isEditMode = false
     
     @State private var showEditFolder = false
@@ -17,12 +16,12 @@ struct FolderItemView: View {
             Image(systemName: "folder")
                 .font(.system(size: FontSize.bodyText, weight: .medium))
                 .imageScale(.large)
-                .foregroundStyle((system && isEditMode) ? .textPlaceholderDisable : .textHighlight1)
+                .foregroundStyle((folder.isSystem && isEditMode) ? .textPlaceholderDisable : .textHighlight1)
                 .frame(width: 24, alignment: .top)
             
             Text(folder.name)
                 .font(.system(size: FontSize.bodyText, weight: .medium))
-                .foregroundStyle((system && isEditMode) ? .textPlaceholderDisable : .textBody)
+                .foregroundStyle((folder.isSystem && isEditMode) ? .textPlaceholderDisable : .textBody)
             
             Spacer()
             
@@ -37,7 +36,7 @@ struct FolderItemView: View {
                     .foregroundStyle(.textPlaceholderDisable)
             }
             
-            if !system && isEditMode {
+            if !folder.isSystem && isEditMode {
                 HStack(spacing: 10) {
                     Menu {
                         Button(action: {

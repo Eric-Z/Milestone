@@ -56,12 +56,12 @@ struct FolderListView: View {
                 List {
                     ForEach(allFolders) { folder in
                         ZStack {
-                            NavigationLink(destination: MilestoneView(folderId: folder.id)) {
+                            NavigationLink(destination: MilestoneListView(folder: folder)) {
                                 EmptyView()
                             }
                             .opacity(0)
                             
-                            FolderItemView(folder: folder, system: folder.isSystem, isEditMode: isEditMode)
+                            FolderItemView(folder: folder, isEditMode: isEditMode)
                         }
                         .listRowSeparator(.hidden)
                         .listRowInsets(.init())
@@ -111,6 +111,7 @@ struct FolderListView: View {
                 .padding(.vertical, 11)
             }
         }
+        .tint(.textHighlight1)
     }
 }
 

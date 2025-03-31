@@ -5,13 +5,13 @@ import SwiftData
 final class Milestone: Identifiable {
     
     var id: UUID
-    var folderId: UUID
+    var folderId: String
     var title: String
     var tag: String
     var remark: String
     var date: Date
     
-    init(id: UUID = UUID(), folderId: UUID, title: String, tag: String, remark: String, date: Date) {
+    init(id: UUID = UUID(), folderId: String, title: String, tag: String, remark: String, date: Date) {
         self.id = id
         self.folderId = folderId
         self.title = title
