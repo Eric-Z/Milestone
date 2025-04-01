@@ -8,6 +8,8 @@ struct MilestoneListView: View {
     @State private var filteredMilestone: [Milestone] = []
     @State private var isAddMode = false;
     
+    @Namespace private var animation
+    
     var folder: Folder
     
     var body: some View {
@@ -44,6 +46,7 @@ struct MilestoneListView: View {
             if isAddMode {
                 MilestoneView(folder: folder)
                     .padding(.horizontal, Distance.listPadding)
+                    .matchedGeometryEffect(id: "NewMilestone", in: animation)
                 Spacer()
             }
         }
@@ -52,17 +55,22 @@ struct MilestoneListView: View {
             VStack {
                 Spacer()
                 
-                Button {
-                    isAddMode = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 54, height: 54)
-                        .background(Color.textHighlight1)
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        .padding(.bottom, 50)
+                if !isAddMode {
+                    Button {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7, blendDuration: 0.25)) {
+                            isAddMode = true
+                        }
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.white)
+                            .frame(width: 54, height: 54)
+                            .background(Color.textHighlight1)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                            .matchedGeometryEffect(id: "NewMilestone", in: animation)
+                            .padding(.bottom, 50)
+                    }
                 }
             }
             .ignoresSafeArea(.container, edges: .bottom)
