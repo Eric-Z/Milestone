@@ -7,6 +7,7 @@ struct MilestoneView: View {
     @State private var isCompleted: Bool = true
     @State private var showDatePicker: Bool = false
     @State private var datePickerOffset: CGPoint = .zero
+    @State private var previousDate: Date = Date()
     
     // 添加日期格式化器
     private var dateFormatter: DateFormatter {
@@ -48,7 +49,9 @@ struct MilestoneView: View {
                 
                 HStack(spacing: 0) {
                     Button {
-                        showDatePicker.toggle()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            showDatePicker.toggle()
+                        }
                     } label: {
                         Image(systemName: "calendar")
                             .font(.system(size: 17))
@@ -90,8 +93,11 @@ struct MilestoneView: View {
                 Color.black.opacity(0.1)
                     .edgesIgnoringSafeArea(.all)
                     .onTapGesture {
-                        showDatePicker = false
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            showDatePicker = false
+                        }
                     }
+                    .transition(.opacity)
                 
                 VStack(spacing: 0) {
                     DatePicker("选择日期", selection: $date, displayedComponents: .date)
@@ -100,12 +106,20 @@ struct MilestoneView: View {
                         .environment(\.locale, Locale(identifier: "zh_CN"))
                         .environment(\.calendar, Calendar(identifier: .gregorian))
                         .tint(.textHighlight1)
+                        .onChange(of: date) {
+                            withAnimation(.easeOut(duration: 0.1)) {
+                                showDatePicker = false
+                            }
+                        }
                 }
-                .frame(width: 320, height: 320)
+                .frame(width: 320, height: 370)
                 .background(.areaBackgroundPopup)
                 .cornerRadius(21)
+                .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
+                .transition(.scale(scale: 0.9).combined(with: .opacity))
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: showDatePicker)
     }
     
 }
