@@ -5,6 +5,15 @@ struct MilestoneView: View {
     @State private var remark: String = ""
     @State private var date: Date = Calendar.current.date(from: DateComponents(year: 2025, month: 3, day: 15)) ?? Date()
     @State private var isCompleted: Bool = true
+    @State private var showDatePicker: Bool = false
+    
+    // 添加日期格式化器
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -37,10 +46,19 @@ struct MilestoneView: View {
             .frame(height: 72)
             
             HStack(spacing: 0) {
-                Image(systemName: "calendar")
+                Button {
+                    showDatePicker = true
+                } label: {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 17))
+                        .imageScale(.large)
+                        .foregroundColor(.textHighlight1)
+                }
+                
+                Text(dateFormatter.string(from: date))
                     .font(.system(size: 17))
-                    .imageScale(.large)
                     .foregroundColor(.textHighlight1)
+                    .padding(.leading, 12)
             }
             .padding(.horizontal, Distance.itemPaddingH)
             .padding(.top, 10)
@@ -66,6 +84,18 @@ struct MilestoneView: View {
                 .inset(by: 0.5)
                 .stroke(.areaBorder, lineWidth: 1)
         )
+        .sheet(isPresented: $showDatePicker) {
+            VStack {
+                DatePicker("选择日期", selection: $date, displayedComponents: .date)
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .padding()
+                
+                Button("确定") {
+                    showDatePicker = false
+                }
+                .padding()
+            }
+        }
     }
     
 }
