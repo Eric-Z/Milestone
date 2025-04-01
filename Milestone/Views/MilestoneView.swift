@@ -1,15 +1,17 @@
 import SwiftUI
 
 struct MilestoneView: View {
-    @State private var title: String = "里程碑"
+    var folder: Folder??
+    
+    @State private var title: String = ""
     @State private var remark: String = ""
     @State private var date: Date = Date()
     @State private var isCompleted: Bool = true
     @State private var showDatePicker: Bool = false
-    @State private var datePickerOffset: CGPoint = .zero
-    @State private var previousDate: Date = Date()
     
-    // 添加日期格式化器
+    /**
+     添加日期格式化器
+     */
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd"
@@ -28,12 +30,13 @@ struct MilestoneView: View {
                         Spacer()
                         
                         Button(action: {
-                            isCompleted.toggle()
+                            
                         }) {
                             Text("完成")
                                 .font(.system(size: FontSize.bodyText, weight: .semibold))
-                                .foregroundColor(.textHighlight1)
+                                .foregroundColor(title.isEmpty ? .textPlaceholderDisable : .textHighlight1)
                         }
+                        .disabled(title.isEmpty)
                     }
                     
                     HStack(spacing: 0) {
@@ -107,21 +110,22 @@ struct MilestoneView: View {
                         .environment(\.calendar, Calendar(identifier: .gregorian))
                         .tint(.textHighlight1)
                         .onChange(of: date) {
-                            withAnimation(.easeOut(duration: 0.1)) {
+                            withAnimation(.easeOut(duration: 0.2)) {
                                 showDatePicker = false
                             }
                         }
                 }
-                .frame(width: 320, height: 370)
+                .frame(width: 320, height: 320)
                 .background(.areaBackgroundPopup)
                 .cornerRadius(21)
                 .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
-                .transition(.scale(scale: 0.9).combined(with: .opacity))
+                .transition(
+                    .scale(scale: 0.5)
+                    .combined(with: .opacity)
+                )
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: showDatePicker)
     }
-    
 }
 
 #Preview {

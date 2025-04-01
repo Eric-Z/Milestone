@@ -6,6 +6,7 @@ struct MilestoneListView: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var milestones: [Milestone]
     @State private var filteredMilestone: [Milestone] = []
+    @State private var isAddMode = false;
     
     var folder: Folder
     
@@ -37,14 +38,22 @@ struct MilestoneListView: View {
             .padding(.top, 0)
             .padding(.bottom, 12)
             
-            NoMilestoneView()
+            if filteredMilestone.isEmpty && !isAddMode {
+                NoMilestoneView()
+            }
+            if isAddMode {
+                MilestoneView(folder: folder)
+                    .padding(.horizontal, Distance.listPadding)
+                Spacer()
+            }
         }
         .navigationBarBackButtonHidden(true)
         .overlay(
             VStack {
                 Spacer()
+                
                 Button {
-                    // 这里添加按钮点击事件
+                    isAddMode = true
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 24, weight: .medium))
@@ -78,6 +87,7 @@ struct MilestoneListView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
+                    
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .font(.system(size: 17))
