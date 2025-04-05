@@ -64,43 +64,40 @@ struct FolderListView: View {
                     ForEach(allFolders) { folder in
                         ZStack {
                             NavigationLink(destination: MilestoneListView(folder: folder)) {
-                                EmptyView()
-                            }
-                            .opacity(0)
-                            
-                            FolderItemView(folder: folder, isEditMode: isEditMode)
-                                .addSwipeAction(edge: .trailing, state: $state) {
-                                    if (!isEditMode) {
-                                        HStack(spacing: 10) {
-                                            
-                                            Button {
-                                                showEditFolder = true
-                                            } label: {
-                                                Image(systemName: "folder")
-                                                    .font(.system(size: 17))
+                                FolderItemView(folder: folder, isEditMode: isEditMode)
+                                    .addSwipeAction(edge: .trailing, state: $state) {
+                                        if (!isEditMode) {
+                                            HStack(spacing: 10) {
+                                                
+                                                Button {
+                                                    showEditFolder = true
+                                                } label: {
+                                                    Image(systemName: "folder")
+                                                        .font(.system(size: 17))
+                                                }
+                                                .frame(width: 50, height: 50)
+                                                .padding(.horizontal, 14)
+                                                .foregroundStyle(.white)
+                                                .background(.purple6)
+                                                .cornerRadius(21)
+                                                
+                                                Button {
+                                                    modelContext.delete(folder)
+                                                    try? modelContext.save()
+                                                } label: {
+                                                    Image(systemName: "trash")
+                                                        .font(.system(size: 17))
+                                                }
+                                                .frame(width: 50, height: 50)
+                                                .padding(.horizontal, 14)
+                                                .foregroundStyle(.white)
+                                                .background(.red)
+                                                .cornerRadius(21)
                                             }
-                                            .frame(width: 50, height: 50)
-                                            .padding(.horizontal, 14)
-                                            .foregroundStyle(.white)
-                                            .background(.purple6)
-                                            .cornerRadius(21)
-                                            
-                                            Button {
-                                                modelContext.delete(folder)
-                                                try? modelContext.save()
-                                            } label: {
-                                                Image(systemName: "trash")
-                                                    .font(.system(size: 17))
-                                            }
-                                            .frame(width: 50, height: 50)
-                                            .padding(.horizontal, 14)
-                                            .foregroundStyle(.white)
-                                            .background(.red)
-                                            .cornerRadius(21)
+                                            .padding(.trailing, Distances.itemPaddingH)
                                         }
-                                        .padding(.trailing, Distances.itemPaddingH)
                                     }
-                                }
+                            }
                         }
                         .sheet(isPresented: $showEditFolder) {
                             FolderEditView(folder: folder)
