@@ -1,5 +1,5 @@
 import SwiftUI
-import Swipy
+import SwipeActions
 import SwiftData
 
 struct FolderListView: View {
@@ -13,8 +13,7 @@ struct FolderListView: View {
     @State private var showAddFolder = false
     @State private var showEditFolder = false
     
-    @State private var isSwipingAnItem = false
-    @State private var currentSwipingItem: SwipyModel?
+    @State var state: SwipeState = .untouched
     
     var body: some View {
         NavigationStack {
@@ -69,11 +68,10 @@ struct FolderListView: View {
                             }
                             .opacity(0)
                             
-                            Swipy(isSwipingAnItem: $isSwipingAnItem) { model in
-                                FolderItemView(folder: folder, isEditMode: isEditMode)
-                            } actions: {
-                                HStack(spacing: 10) {
-                                    SwipyAction { model in
+                            FolderItemView(folder: folder, isEditMode: isEditMode)
+                                .addSwipeAction(edge: .trailing, state: $state) {
+                                    HStack(spacing: 10) {
+                                        
                                         Button {
                                             showEditFolder = true
                                         } label: {
@@ -85,13 +83,10 @@ struct FolderListView: View {
                                         .foregroundStyle(.white)
                                         .background(.purple6)
                                         .cornerRadius(21)
-                                    }
-                                    
-                                    SwipyAction { model in
+                                        
                                         Button {
                                             modelContext.delete(folder)
                                             try? modelContext.save()
-                                            model.unswipe()
                                         } label: {
                                             Image(systemName: "trash")
                                                 .font(.system(size: 17))
@@ -103,8 +98,6 @@ struct FolderListView: View {
                                         .cornerRadius(21)
                                     }
                                 }
-                                .padding(.trailing, Distances.itemPaddingH)
-                            }
                         }
                         .sheet(isPresented: $showEditFolder) {
                             FolderEditView(folder: folder)
@@ -112,8 +105,7 @@ struct FolderListView: View {
                     }
                 }
                 .animation(.easeInOut, value: allFolders.count)
-                .scrollDisabled(isSwipingAnItem)
-                    
+                
                 
                 // 底部按钮
                 HStack(spacing: 0) {
