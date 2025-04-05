@@ -54,6 +54,7 @@ struct FolderAddView: View {
                 .padding()
                 
                 TextField("名称", text: $folderName)
+                    .frame(height: 24)
                     .padding(.vertical, 12)
                     .padding(.horizontal, Distances.itemPaddingH)
                     .background(.areaItem)

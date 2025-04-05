@@ -16,7 +16,7 @@ struct FolderEditView: View {
      检查文件夹名称是否被占用
      */
     private func exists() -> Bool {
-        if folderName == "全部里程碑" || folderName == "最近删除" {
+        if folderName == FolderConstants.FOLDER_ALL || folderName == FolderConstants.FOLDER_DELETED {
             return true
         }
         return folders.contains { $0.name.lowercased() == folderName.lowercased() && $0.id != folder.id}
@@ -34,7 +34,7 @@ struct FolderEditView: View {
                     Spacer()
                     
                     Text("重新命名文件夹")
-                        .font(.headline)
+                        .font(.system(size: FontSizes.bodyText, weight: .semibold))
                     
                     Spacer()
                     
@@ -52,7 +52,8 @@ struct FolderEditView: View {
                 }
                 .padding()
                 
-                TextField("名称", text: $folderName)
+                SelectableTextField(text: $folderName, isFirstResponder: Binding.constant(true), placeholder: "名称")
+                    .frame(height: 24)
                     .padding(.vertical, 12)
                     .padding(.horizontal, Distances.itemPaddingH)
                     .background(.areaItem)
@@ -60,7 +61,7 @@ struct FolderEditView: View {
                     .padding(.horizontal)
                     .focused($isFocused)
                     .font(.system(size: FontSizes.bodyText))
-                
+                    
                 Spacer()
             }
             .alert("名称已被使用", isPresented: $showAlert) {
