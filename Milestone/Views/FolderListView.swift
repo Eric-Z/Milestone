@@ -38,11 +38,11 @@ struct FolderListView: View {
                     HStack(alignment: .center, spacing: 5) {
                         let folderSize = allFolders.count
                         Text("\(folderSize)")
-                            .font(.system(size: FontSize.largeNoteNumber, weight: .semibold, design: .rounded))
+                            .font(.system(size: FontSizes.largeNoteNumber, weight: .semibold, design: .rounded))
                             .foregroundColor(.textNote)
                         
                         Text("个文件夹")
-                            .font(.system(size: FontSize.largeNoteText, weight: .semibold))
+                            .font(.system(size: FontSizes.largeNoteText, weight: .semibold))
                             .foregroundColor(.textNote)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
                     }
@@ -88,7 +88,7 @@ struct FolderListView: View {
                         showAddFolder = true
                     } label: {
                         Image(systemName: "folder.badge.plus")
-                            .font(.system(size: FontSize.bodyText))
+                            .font(.system(size: FontSizes.bodyText))
                             .imageScale(.large)
                             .foregroundStyle(.textHighlight1)
                     }
@@ -102,7 +102,7 @@ struct FolderListView: View {
                         
                     } label: {
                         Image(systemName: "plus.circle")
-                            .font(.system(size: FontSize.bodyText))
+                            .font(.system(size: FontSizes.bodyText))
                             .imageScale(.large)
                             .foregroundStyle(.textHighlight1)
                     }

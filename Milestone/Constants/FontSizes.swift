@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct FontSize {
+struct FontSizes {
     
     public static let largeTitleText = CGFloat(32)
     

@@ -4,6 +4,7 @@ import SwiftData
 struct FolderAddView: View {
     
     @Query private var folders: [Folder]
+    
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
@@ -15,7 +16,7 @@ struct FolderAddView: View {
      检查文件夹名称是否被占用
      */
     private func exists() -> Bool {
-        if folderName == "全部里程碑" || folderName == "最近删除" {
+        if folderName == FolderConstants.FOLDER_ALL || folderName == FolderConstants.FOLDER_DELETED {
             return true
         }
         return folders.contains { $0.name.lowercased() == folderName.lowercased() }
@@ -33,7 +34,7 @@ struct FolderAddView: View {
                     Spacer()
                     
                     Text("新建文件夹")
-                        .font(.headline)
+                        .font(.system(size: FontSizes.bodyText, weight: .semibold))
                     
                     Spacer()
                     
@@ -54,12 +55,12 @@ struct FolderAddView: View {
                 
                 TextField("名称", text: $folderName)
                     .padding(.vertical, 12)
-                    .padding(.horizontal, Distance.itemPaddingH)
+                    .padding(.horizontal, Distances.itemPaddingH)
                     .background(.areaItem)
                     .cornerRadius(21)
                     .padding(.horizontal)
                     .focused($isFocused)
-                    .font(.system(size: FontSize.bodyText))
+                    .font(.system(size: FontSizes.bodyText))
                 
                 Spacer()
             }

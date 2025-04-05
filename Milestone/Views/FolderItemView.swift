@@ -14,24 +14,24 @@ struct FolderItemView: View {
         // 主内容层
         HStack(alignment: .center, spacing: 10) {
             Image(systemName: "folder")
-                .font(.system(size: FontSize.bodyText, weight: .medium))
+                .font(.system(size: FontSizes.bodyText, weight: .medium))
                 .imageScale(.large)
                 .foregroundStyle((folder.isSystem && isEditMode) ? .textPlaceholderDisable : .textHighlight1)
                 .frame(width: 24, alignment: .top)
             
             Text(folder.name)
-                .font(.system(size: FontSize.bodyText, weight: .medium))
+                .font(.system(size: FontSizes.bodyText, weight: .medium))
                 .foregroundStyle((folder.isSystem && isEditMode) ? .textPlaceholderDisable : .textBody)
             
             Spacer()
             
             if !isEditMode {
                 Text("12")
-                    .font(.system(size: FontSize.bodyText, weight: .medium))
+                    .font(.system(size: FontSizes.bodyText, weight: .medium))
                     .foregroundStyle(.textNote)
                 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: FontSize.bodyText, weight: .medium))
+                    .font(.system(size: FontSizes.bodyText, weight: .medium))
                     .imageScale(.large)
                     .foregroundStyle(.textPlaceholderDisable)
             }
@@ -53,7 +53,7 @@ struct FolderItemView: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
-                            .font(.system(size: FontSize.bodyText, weight: .medium))
+                            .font(.system(size: FontSizes.bodyText, weight: .medium))
                             .imageScale(.large)
                             .foregroundStyle(.textHighlight1)
                             .frame(width: 24, alignment: .center)
@@ -65,7 +65,7 @@ struct FolderItemView: View {
                         .padding(.horizontal, 2)
                     
                     Image(systemName: "line.3.horizontal")
-                        .font(.system(size: FontSize.bodyText, weight: .medium))
+                        .font(.system(size: FontSizes.bodyText, weight: .medium))
                         .imageScale(.large)
                         .foregroundStyle(.textNote)
                         .frame(width: 24, alignment: .center)

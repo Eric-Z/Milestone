@@ -54,12 +54,12 @@ struct FolderEditView: View {
                 
                 TextField("名称", text: $folderName)
                     .padding(.vertical, 12)
-                    .padding(.horizontal, Distance.itemPaddingH)
+                    .padding(.horizontal, Distances.itemPaddingH)
                     .background(.areaItem)
                     .cornerRadius(21)
                     .padding(.horizontal)
                     .focused($isFocused)
-                    .font(.system(size: FontSize.bodyText))
+                    .font(.system(size: FontSizes.bodyText))
                 
                 Spacer()
             }

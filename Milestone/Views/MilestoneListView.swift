@@ -17,19 +17,19 @@ struct MilestoneListView: View {
             HStack(alignment: .center, spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("\(folder.name)")
-                        .font(.system(size: FontSize.largeTitleText, weight: .semibold))
+                        .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
                     
                     if filteredMilestone.isEmpty {
                         Text("暂无里程碑")
-                            .font(.system(size: FontSize.largeNoteText))
+                            .font(.system(size: FontSizes.largeNoteText))
                             .foregroundStyle(.textNote)
                     } else {
                         HStack(spacing: 0) {
                             Text("\(filteredMilestone.count)")
-                                .font(.system(size: FontSize.largeNoteNumber))
+                                .font(.system(size: FontSizes.largeNoteNumber))
                                 .foregroundStyle(.textNote)
                             Text("个里程碑")
-                                .font(.system(size: FontSize.largeNoteText))
+                                .font(.system(size: FontSizes.largeNoteText))
                                 .foregroundStyle(.textNote)
                         }
                     }
@@ -45,7 +45,7 @@ struct MilestoneListView: View {
             }
             if isAddMode {
                 MilestoneView(folder: folder)
-                    .padding(.horizontal, Distance.listPadding)
+                    .padding(.horizontal, Distances.listPadding)
                     .matchedGeometryEffect(id: "NewMilestone", in: animation)
                 Spacer()
             }

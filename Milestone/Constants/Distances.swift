@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct Distance {
+struct Distances {
     
     public static let listPadding = CGFloat(14)
     public static let listGap = CGFloat(10)

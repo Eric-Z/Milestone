@@ -25,7 +25,7 @@ struct MilestoneView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 0) {
                         TextField("里程碑", text: $title)
-                            .font(.system(size: FontSize.bodyText, weight: .medium))
+                            .font(.system(size: FontSizes.bodyText, weight: .medium))
                         
                         Spacer()
                         
@@ -33,7 +33,7 @@ struct MilestoneView: View {
                             
                         }) {
                             Text("完成")
-                                .font(.system(size: FontSize.bodyText, weight: .semibold))
+                                .font(.system(size: FontSizes.bodyText, weight: .semibold))
                                 .foregroundColor(title.isEmpty ? .textPlaceholderDisable : .textHighlight1)
                         }
                         .disabled(title.isEmpty)
@@ -46,8 +46,8 @@ struct MilestoneView: View {
                     }
                     
                 }
-                .padding(.horizontal, Distance.itemPaddingH)
-                .padding(.vertical, Distance.itemPaddingV)
+                .padding(.horizontal, Distances.itemPaddingH)
+                .padding(.vertical, Distances.itemPaddingV)
                 .frame(height: 72)
                 
                 HStack(spacing: 0) {
@@ -67,7 +67,7 @@ struct MilestoneView: View {
                         .foregroundColor(.textHighlight1)
                         .padding(.leading, 12)
                 }
-                .padding(.horizontal, Distance.itemPaddingH)
+                .padding(.horizontal, Distances.itemPaddingH)
                 .padding(.top, 10)
                 .padding(.bottom, 11)
                 .frame(maxWidth: .infinity, alignment: .leading)
