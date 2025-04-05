@@ -7,10 +7,14 @@ struct FolderListView: View {
     @Query(sort: \Folder.sortOrder) private var allFolders: [Folder]
     @Environment(\.modelContext) private var modelContext
     
-    @State private var currentEditingFolder: Folder?
-    @State private var showAddFolder = false
     @State private var isEditMode = false
+    @State private var currentEditingFolder: Folder?
+    
+    @State private var showAddFolder = false
+    @State private var showEditFolder = false
+    
     @State private var isSwipingAnItem = false
+    @State private var currentSwipingItem: SwipyModel?
     
     var body: some View {
         NavigationStack {
@@ -71,7 +75,7 @@ struct FolderListView: View {
                                 HStack(spacing: 10) {
                                     SwipyAction { model in
                                         Button {
-                                            
+                                            showEditFolder = true
                                         } label: {
                                             Image(systemName: "folder")
                                                 .font(.system(size: 17))
@@ -101,6 +105,9 @@ struct FolderListView: View {
                                 }
                                 .padding(.trailing, Distances.itemPaddingH)
                             }
+                        }
+                        .sheet(isPresented: $showEditFolder) {
+                            FolderEditView(folder: folder)
                         }
                     }
                 }
