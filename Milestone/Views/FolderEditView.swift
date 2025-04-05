@@ -16,7 +16,7 @@ struct FolderEditView: View {
      检查文件夹名称是否被占用
      */
     private func exists() -> Bool {
-        if folderName == FolderConstants.FOLDER_ALL || folderName == FolderConstants.FOLDER_DELETED {
+        if folderName == Constants.FOLDER_ALL || folderName == Constants.FOLDER_DELETED {
             return true
         }
         return folders.contains { $0.name.lowercased() == folderName.lowercased() && $0.id != folder.id}

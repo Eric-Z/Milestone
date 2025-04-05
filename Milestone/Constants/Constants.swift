@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct FolderConstants {
+struct Constants {
     
     /**
      文件夹：全部里程碑

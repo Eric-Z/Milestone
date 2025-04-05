@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		07B1B8FB2DA0F999005192B9 /* Swipy in Frameworks */ = {isa = PBXBuildFile; productRef = 07B1B8FA2DA0F999005192B9 /* Swipy */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		07F641712D4A251F00B75C59 /* Milestone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Milestone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				07B1B8FB2DA0F999005192B9 /* Swipy in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = Milestone;
 			packageProductDependencies = (
+				07B1B8FA2DA0F999005192B9 /* Swipy */,
 			);
 			productName = Milestone;
 			productReference = 07F641712D4A251F00B75C59 /* Milestone.app */;
@@ -95,6 +101,7 @@
 			mainGroup = 07F641682D4A251F00B75C59;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				07B1B8F92DA0F999005192B9 /* XCRemoteSwiftPackageReference "Swipy" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 07F641722D4A251F00B75C59 /* Products */;
@@ -330,6 +337,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		07B1B8F92DA0F999005192B9 /* XCRemoteSwiftPackageReference "Swipy" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/rohanrhu/Swipy";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		07B1B8FA2DA0F999005192B9 /* Swipy */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 07B1B8F92DA0F999005192B9 /* XCRemoteSwiftPackageReference "Swipy" */;
+			productName = Swipy;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 07F641692D4A251F00B75C59 /* Project object */;
 }

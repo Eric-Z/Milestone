@@ -1,12 +1,16 @@
 import SwiftUI
+import Swipy
 import SwiftData
 
 struct FolderListView: View {
     
     @Query(sort: \Folder.sortOrder) private var allFolders: [Folder]
+    @Environment(\.modelContext) private var modelContext
+    
     @State private var currentEditingFolder: Folder?
     @State private var showAddFolder = false
     @State private var isEditMode = false
+    @State private var isSwipingAnItem = false
     
     var body: some View {
         NavigationStack {
@@ -53,7 +57,7 @@ struct FolderListView: View {
                 .padding(.bottom, 12)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 
-                List {
+                ScrollView {
                     ForEach(allFolders) { folder in
                         ZStack {
                             NavigationLink(destination: MilestoneListView(folder: folder)) {
@@ -61,26 +65,48 @@ struct FolderListView: View {
                             }
                             .opacity(0)
                             
-                            FolderItemView(folder: folder, isEditMode: isEditMode)
+                            Swipy(isSwipingAnItem: $isSwipingAnItem) { model in
+                                FolderItemView(folder: folder, isEditMode: isEditMode)
+                            } actions: {
+                                HStack(spacing: 10) {
+                                    SwipyAction { model in
+                                        Button {
+                                            
+                                        } label: {
+                                            Image(systemName: "folder")
+                                                .font(.system(size: 17))
+                                        }
+                                        .frame(width: 50, height: 50)
+                                        .padding(.horizontal, 14)
+                                        .foregroundStyle(.white)
+                                        .background(.purple6)
+                                        .cornerRadius(21)
+                                    }
+                                    
+                                    SwipyAction { model in
+                                        Button {
+                                            modelContext.delete(folder)
+                                            try? modelContext.save()
+                                            model.unswipe()
+                                        } label: {
+                                            Image(systemName: "trash")
+                                                .font(.system(size: 17))
+                                        }
+                                        .frame(width: 50, height: 50)
+                                        .padding(.horizontal, 14)
+                                        .foregroundStyle(.white)
+                                        .background(.red)
+                                        .cornerRadius(21)
+                                    }
+                                }
+                                .padding(.trailing, Distances.itemPaddingH)
+                            }
                         }
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(.init())
-                        .listRowBackground(Color.clear)
                     }
-                    .onMove { indices, newOffset in
-                        var folders = allFolders
-                        folders.move(fromOffsets: indices, toOffset: newOffset)
-                        
-                        // 更新排序顺序
-                        for i in 0..<folders.count {
-                            folders[i].sortOrder = i
-                        }
-                    }
-                    .moveDisabled(!isEditMode)
                 }
-                .listStyle(.plain)
-                .listRowSpacing(10)
                 .animation(.easeInOut, value: allFolders.count)
+                .scrollDisabled(isSwipingAnItem)
+                    
                 
                 // 底部按钮
                 HStack(spacing: 0) {
