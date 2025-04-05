@@ -1,133 +1,97 @@
 import SwiftUI
+import SwiftData
+import Foundation
 
 struct MilestoneView: View {
-    var folder: Folder??
     
-    @State private var title: String = ""
-    @State private var remark: String = ""
-    @State private var date: Date = Date()
-    @State private var isCompleted: Bool = true
-    @State private var showDatePicker: Bool = false
-    
-    /**
-     添加日期格式化器
-     */
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        formatter.locale = Locale(identifier: "zh_CN")
-        return formatter
-    }
+    var folder: Folder?
+    var milestone: Milestone
     
     var body: some View {
-        ZStack {
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: milestone.date).day ?? 0
+        
+        HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 0) {
-                        TextField("里程碑", text: $title)
-                            .font(.system(size: FontSizes.bodyText, weight: .medium))
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            
-                        }) {
-                            Text("完成")
-                                .font(.system(size: FontSizes.bodyText, weight: .semibold))
-                                .foregroundColor(title.isEmpty ? .textPlaceholderDisable : .textHighlight1)
+                Group {
+                    if days > 0 {
+                        Text("\(milestone.title)还有")
+                    } else if days < 0 {
+                        Text("\(milestone.title)已经")
+                    } else {
+                        HStack(spacing: 0) {
+                            Text("\(milestone.title)")
+                            Text("就是今天！")
+                                .foregroundStyle(milestone.pinned ? .white : .textHighlight1)
                         }
-                        .disabled(title.isEmpty)
                     }
-                    
-                    HStack(spacing: 0) {
-                        TextField("添加备注", text: $remark)
-                            .font(.system(size: 14))
-                            .foregroundColor(.textPlaceholderDisable)
-                    }
-                    
                 }
-                .padding(.horizontal, Distances.itemPaddingH)
-                .padding(.vertical, Distances.itemPaddingV)
-                .frame(height: 72)
+                .font(.system(size: FontSizes.bodyText, weight: .semibold))
+                .foregroundStyle(milestone.pinned ? .white : .accent)
                 
-                HStack(spacing: 0) {
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            showDatePicker.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 17))
-                            .imageScale(.large)
-                            .foregroundColor(.textHighlight1)
-                    }
-                    
-                    Text(dateFormatter.string(from: date))
-                        .font(.system(size: 17))
-                        .foregroundColor(.textHighlight1)
-                        .padding(.leading, 12)
+                if !milestone.remark.isEmpty {
+                    Text("\(milestone.remark)")
+                        .font(.system(size: FontSizes.noteText))
+                        .padding(.top, Distances.itemGap)
+                        .foregroundStyle(milestone.pinned ? .white : .textNote)
                 }
-                .padding(.horizontal, Distances.itemPaddingH)
-                .padding(.top, 10)
-                .padding(.bottom, 11)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    LinearGradient(
-                        stops: [
-                            Gradient.Stop(color: .areaItem, location: 0.00),
-                            Gradient.Stop(color: .areaItemLight, location: 1.00),
-                        ],
-                        startPoint: UnitPoint(x: 0.5, y: 0),
-                        endPoint: UnitPoint(x: 0.5, y: 1)
-                    )
-                )
+                
+                if let folderId = milestone.folderId, !folderId.isEmpty, let folderName = folder?.name {
+                    HStack(spacing: 0) {
+                        Group {
+                            Image(systemName: "folder")
+                                
+                            Text(folderName)
+                                .padding(.leading, Distances.itemGap)
+                        }
+                        .font(.system(size: FontSizes.noteText))
+                        .foregroundStyle(milestone.pinned ? .white : .textNote)
+                        .padding(.top, Distances.itemGap)
+                    }
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.areaBackground)
-            .cornerRadius(21)
-            .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 21)
-                    .inset(by: 0.5)
-                    .stroke(.areaBorder, lineWidth: 1)
-            )
             
-            if showDatePicker {
-                Color.black.opacity(0.1)
-                    .edgesIgnoringSafeArea(.all)
-                    .onTapGesture {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            showDatePicker = false
+            Spacer()
+            
+            HStack(spacing: 0) {
+                Group {
+                    if days > 0 {
+                        Group {
+                            Text("\(days)")
+                            Text("天")
+                                .padding(.leading, Distances.itemGap)
                         }
+                        .foregroundStyle(milestone.pinned ? .white : .textHighlight2)
+                    } else if days < 0 {
+                        Group {
+                            Text("\(-days)")
+                            Text("天")
+                                .padding(.leading, Distances.itemGap)
+                        }
+                        .foregroundStyle(milestone.pinned ? .white : .textHighlight1)
+                    } else {
+                        Text("🎉")
                     }
-                    .transition(.opacity)
-                
-                VStack(spacing: 0) {
-                    DatePicker("选择日期", selection: $date, displayedComponents: .date)
-                        .datePickerStyle(GraphicalDatePickerStyle())
-                        .padding()
-                        .environment(\.locale, Locale(identifier: "zh_CN"))
-                        .environment(\.calendar, Calendar(identifier: .gregorian))
-                        .tint(.textHighlight1)
-                        .onChange(of: date) {
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                showDatePicker = false
-                            }
-                        }
                 }
-                .frame(width: 320, height: 320)
-                .background(.areaBackgroundPopup)
-                .cornerRadius(21)
-                .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
-                .transition(
-                    .scale(scale: 0.5)
-                    .combined(with: .opacity)
-                )
+                .font(.system(size: FontSizes.bodyNumber, weight: .semibold, design: .rounded))
+                .foregroundStyle(milestone.pinned ? .white : .accentColor)
             }
         }
+        .padding(.horizontal, Distances.itemPaddingH)
+        .padding(.vertical, Distances.itemPaddingV)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(milestone.pinned ? (days > 0 ? .textHighlight2 : .textHighlight1) : .areaItem)
+        .cornerRadius(21)
     }
 }
 
 #Preview {
-    MilestoneView()
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd"
+    
+    let folder = Folder(name: "旅行", sortOrder: 1)
+    
+    let milestone = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
+    milestone.pinned = true
+    
+    return MilestoneView(folder: folder, milestone: milestone)
 }

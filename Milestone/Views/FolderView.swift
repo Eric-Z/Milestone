@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct FolderItemView: View {
+struct FolderView: View {
     
     @Environment(\.modelContext) private var modelContext
     
@@ -92,5 +92,5 @@ struct FolderItemView: View {
 
 #Preview {
     let folder = Folder(name: "全部里程碑", sortOrder:  1)
-    FolderItemView(folder: folder)
+    FolderView(folder: folder)
 }

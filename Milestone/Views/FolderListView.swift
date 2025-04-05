@@ -64,7 +64,7 @@ struct FolderListView: View {
                     ForEach(allFolders) { folder in
                         ZStack {
                             NavigationLink(destination: MilestoneListView(folder: folder)) {
-                                FolderItemView(folder: folder, isEditMode: isEditMode)
+                                FolderView(folder: folder, isEditMode: isEditMode)
                                     .addSwipeAction(edge: .trailing, state: $state) {
                                         if (!isEditMode) {
                                             HStack(spacing: 10) {

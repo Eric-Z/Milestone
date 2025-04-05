@@ -4,7 +4,9 @@ import SwiftData
 struct MilestoneListView: View {
     
     @Environment(\.dismiss) private var dismiss
+    
     @Query private var milestones: [Milestone]
+    
     @State private var filteredMilestone: [Milestone] = []
     @State private var isAddMode = false;
     
@@ -42,9 +44,16 @@ struct MilestoneListView: View {
             
             if filteredMilestone.isEmpty && !isAddMode {
                 NoMilestoneView()
+            } else {
+                ScrollView {
+                    ForEach(filteredMilestone) { milestone in
+                        MilestoneView(folder: folder, milestone: milestone)
+                    }
+                }
             }
+            
             if isAddMode {
-                MilestoneView(folder: folder)
+                MilestoneAddView(folder: folder)
                     .padding(.horizontal, Distances.listPadding)
                     .matchedGeometryEffect(id: "NewMilestone", in: animation)
                 Spacer()
