@@ -4,8 +4,9 @@ import SwiftData
 struct MilestoneAddView: View {
     
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     
-    var folder: Folder??
+    var folder: Folder?
     
     @State private var title: String = ""
     @State private var remark: String = ""
@@ -33,6 +34,10 @@ struct MilestoneAddView: View {
                         Spacer()
                         
                         Button(action: {
+                            let milestone = Milestone(folderId: folder?.id.uuidString, title: title, remark: remark, date: date)
+                            modelContext.insert(milestone)
+                            try? modelContext.save()
+                            dismiss()
                         }) {
                             Text("完成")
                                 .font(.system(size: FontSizes.bodyText, weight: .semibold))

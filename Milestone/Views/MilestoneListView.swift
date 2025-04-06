@@ -1,9 +1,11 @@
 import SwiftUI
 import SwiftData
+import SwipeActions
 
 struct MilestoneListView: View {
     
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     
     @Query private var milestones: [Milestone]
     
@@ -11,6 +13,8 @@ struct MilestoneListView: View {
     @State private var isAddMode = false;
     
     @Namespace private var animation
+    
+    @State var state: SwipeState = .untouched
     
     var folder: Folder
     
@@ -21,20 +25,20 @@ struct MilestoneListView: View {
                     Text("\(folder.name)")
                         .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
                     
-                    if filteredMilestone.isEmpty {
-                        Text("暂无里程碑")
-                            .font(.system(size: FontSizes.largeNoteText))
-                            .foregroundStyle(.textNote)
-                    } else {
-                        HStack(spacing: 0) {
-                            Text("\(filteredMilestone.count)")
-                                .font(.system(size: FontSizes.largeNoteNumber))
-                                .foregroundStyle(.textNote)
-                            Text("个里程碑")
+                    Group {
+                        if filteredMilestone.isEmpty {
+                            Text("暂无里程碑")
                                 .font(.system(size: FontSizes.largeNoteText))
-                                .foregroundStyle(.textNote)
+                        } else {
+                            HStack(spacing: 0) {
+                                Text("\(filteredMilestone.count)")
+                                    .font(.system(size: FontSizes.largeNoteNumber))
+                                Text("个里程碑")
+                                    .font(.system(size: FontSizes.largeNoteText))
+                            }
                         }
                     }
+                    .foregroundStyle(.textNote)
                 }
                 Spacer()
             }
@@ -48,6 +52,56 @@ struct MilestoneListView: View {
                 ScrollView {
                     ForEach(filteredMilestone) { milestone in
                         MilestoneView(folder: folder, milestone: milestone)
+                            .padding(.horizontal, Distances.itemPaddingH)
+                            .padding(.bottom, Distances.itemGap)
+                            .addSwipeAction(state: $state) {
+                                Leading {
+                                    HStack(spacing: 10) {
+                                        Button {
+                                            milestone.pinned.toggle()
+                                        } label: {
+                                            Image(systemName: milestone.pinned ? "pin.slash" : "pin.fill")
+                                                .font(.system(size: 17))
+                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                                .contentShape(Rectangle())
+                                        }
+                                        .frame(width: 64)
+                                        .foregroundStyle(.white)
+                                        .background(.textHighlight1)
+                                        .cornerRadius(21)
+                                    }
+                                    .padding(.leading, Distances.itemPaddingH)
+                                }
+                                Trailing {
+                                    HStack(spacing: 10) {
+                                        Button {
+                                        } label: {
+                                            Image(systemName: "folder.fill")
+                                                .font(.system(size: 17))
+                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                                .contentShape(Rectangle())
+                                        }
+                                        .frame(width: 64)
+                                        .foregroundStyle(.white)
+                                        .background(.purple6)
+                                        .cornerRadius(21)
+                                        
+                                        Button {
+                                            // 添加你的操作逻辑
+                                        } label: {
+                                            Image(systemName: "trash")
+                                                .font(.system(size: 17))
+                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                                .contentShape(Rectangle())
+                                        }
+                                        .frame(width: 64)
+                                        .foregroundStyle(.white)
+                                        .background(.red)
+                                        .cornerRadius(21)
+                                    }
+                                    .padding(.trailing, Distances.itemPaddingH)
+                                }
+                            }
                     }
                 }
             }
@@ -82,7 +136,7 @@ struct MilestoneListView: View {
                     }
                 }
             }
-            .ignoresSafeArea(.container, edges: .bottom)
+                .ignoresSafeArea(.container, edges: .bottom)
         )
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -93,7 +147,7 @@ struct MilestoneListView: View {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 17))
                             .foregroundStyle(.textHighlight1)
-                            
+                        
                         Text("文件夹")
                             .font(.system(size: 17))
                             .foregroundStyle(.textHighlight1)
@@ -115,12 +169,54 @@ struct MilestoneListView: View {
         .onAppear {
             filteredMilestone = milestones.filter { milestone in
                 milestone.folderId == folder.id.uuidString
+            }.sorted { m1, m2 in
+                // 首先按pinned状态排序
+                if m1.pinned != m2.pinned {
+                    return m1.pinned
+                }
+                
+                let now = Date()
+                let diff1 = m1.date.timeIntervalSince(now)
+                let diff2 = m2.date.timeIntervalSince(now)
+                
+                // 如果两个都是未来或都是过去，按照接近当前时间的排序
+                if (diff1 >= 0 && diff2 >= 0) || (diff1 < 0 && diff2 < 0) {
+                    return abs(diff1) < abs(diff2)
+                }
+                
+                // 未来时间排在过去时间前面
+                return diff1 >= 0
             }
         }
     }
 }
 
 #Preview {
-    let folder = Folder(name: "全部里程碑", sortOrder: 1)
-    MilestoneListView(folder: folder)
+    do {
+        let schema = Schema([
+            Folder.self, Milestone.self
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+        let context = container.mainContext
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        let folder = Folder(name: "旅行", sortOrder: 1)
+        
+        let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
+        milestone1.pinned = true
+        
+        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪一下", date: formatter.date(from: "2025-06-25")!)
+        milestone2.pinned = false
+        
+        context.insert(folder)
+        context.insert(milestone1)
+        context.insert(milestone2)
+        
+        return MilestoneListView(folder: folder).modelContainer(container)
+    } catch {
+        return Text("无法创建 ModelContainer")
+    }
 }
