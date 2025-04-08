@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		070863D32DA53C47001DB9FF /* SwipeActions in Frameworks */ = {isa = PBXBuildFile; productRef = 070863D22DA53C47001DB9FF /* SwipeActions */; };
+		077FD54C2DA558B3001FD52B /* SwipeActions in Frameworks */ = {isa = PBXBuildFile; productRef = 077FD54B2DA558B3001FD52B /* SwipeActions */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				070863D32DA53C47001DB9FF /* SwipeActions in Frameworks */,
+				077FD54C2DA558B3001FD52B /* SwipeActions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +70,7 @@
 			);
 			name = Milestone;
 			packageProductDependencies = (
-				070863D22DA53C47001DB9FF /* SwipeActions */,
+				077FD54B2DA558B3001FD52B /* SwipeActions */,
 			);
 			productName = Milestone;
 			productReference = 07F641712D4A251F00B75C59 /* Milestone.app */;
@@ -101,7 +101,7 @@
 			mainGroup = 07F641682D4A251F00B75C59;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				070863D12DA53C47001DB9FF /* XCRemoteSwiftPackageReference "SwipeActions" */,
+				077FD54A2DA558B3001FD52B /* XCRemoteSwiftPackageReference "SwipeActions" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 07F641722D4A251F00B75C59 /* Products */;
@@ -339,7 +339,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		070863D12DA53C47001DB9FF /* XCRemoteSwiftPackageReference "SwipeActions" */ = {
+		077FD54A2DA558B3001FD52B /* XCRemoteSwiftPackageReference "SwipeActions" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/c-villain/SwipeActions";
 			requirement = {
@@ -350,9 +350,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		070863D22DA53C47001DB9FF /* SwipeActions */ = {
+		077FD54B2DA558B3001FD52B /* SwipeActions */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 070863D12DA53C47001DB9FF /* XCRemoteSwiftPackageReference "SwipeActions" */;
+			package = 077FD54A2DA558B3001FD52B /* XCRemoteSwiftPackageReference "SwipeActions" */;
 			productName = SwipeActions;
 		};
 /* End XCSwiftPackageProductDependency section */

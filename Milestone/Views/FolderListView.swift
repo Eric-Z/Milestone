@@ -66,10 +66,11 @@ struct FolderListView: View {
                             NavigationLink(destination: MilestoneListView(folder: folder)) {
                                 FolderView(folder: folder, isEditMode: isEditMode)
                                     .addSwipeAction(edge: .trailing, state: $state) {
-                                        if (!isEditMode && !folder.isSystem) {
+                                        if (!isEditMode && !showAddFolder && !showEditFolder && !folder.isSystem) {
                                             HStack(spacing: 10) {
                                                 
                                                 Button {
+                                                    currentEditingFolder = folder
                                                     showEditFolder = true
                                                 } label: {
                                                     Image(systemName: "folder")
@@ -84,6 +85,7 @@ struct FolderListView: View {
                                                 Button {
                                                     modelContext.delete(folder)
                                                     try? modelContext.save()
+                                                    refreshFolders()
                                                 } label: {
                                                     Image(systemName: "trash")
                                                         .font(.system(size: 17))
@@ -100,12 +102,13 @@ struct FolderListView: View {
                             }
                         }
                         .sheet(isPresented: $showEditFolder) {
-                            FolderEditView(folder: folder)
+                            if let folderToEdit = currentEditingFolder {
+                                FolderEditView(folder: folderToEdit)
+                            }
                         }
                     }
                 }
-                .animation(.easeInOut, value: allFolders.count)
-                
+                .animation(.easeInOut, value: folders.count)
                 
                 // 底部按钮
                 HStack(spacing: 0) {
@@ -138,13 +141,20 @@ struct FolderListView: View {
         }
         .tint(.textHighlight1)
         .onAppear {
-            allFolders = []
-            allFolders.insert(contentsOf: folders, at: 0)
-            
-            let systemFolder = Folder(name: Constants.FOLDER_ALL, sortOrder: 0);
-            systemFolder.isSystem = true
-            allFolders.insert(systemFolder, at: 0)
+            refreshFolders()
         }
+        .onChange(of: folders) { oldValue, newValue in
+            refreshFolders()
+        }
+    }
+    
+    private func refreshFolders() {
+        allFolders = []
+        allFolders.insert(contentsOf: folders, at: 0)
+        
+        let systemFolder = Folder(name: Constants.FOLDER_ALL, sortOrder: 0);
+        systemFolder.isSystem = true
+        allFolders.insert(systemFolder, at: 0)
     }
 }
 
@@ -157,11 +167,11 @@ struct FolderListView: View {
         let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         let context = container.mainContext
         
-//        let folder1 = Folder(name: "生日", sortOrder: 1)
-//        let folder2 = Folder(name: "旅游", sortOrder: 2)
-//        context.insert(folder1)
-//        context.insert(folder2)
-//        
+        let folder1 = Folder(name: "生日", sortOrder: 1)
+        let folder2 = Folder(name: "旅游", sortOrder: 2)
+        context.insert(folder1)
+        context.insert(folder2)
+        
         return FolderListView().modelContainer(container)
     } catch {
         return Text("无法创建 ModelContainer")
