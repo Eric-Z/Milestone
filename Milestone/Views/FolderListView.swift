@@ -4,9 +4,10 @@ import SwiftData
 
 struct FolderListView: View {
     
-    @Query(sort: \Folder.sortOrder) private var allFolders: [Folder]
+    @Query(sort: \Folder.sortOrder) private var folders: [Folder]
     @Environment(\.modelContext) private var modelContext
     
+    @State private var allFolders: [Folder] = []
     @State private var isEditMode = false
     @State private var currentEditingFolder: Folder?
     
@@ -28,7 +29,7 @@ struct FolderListView: View {
                         }
                     } label: {
                         Text(isEditMode ? "完成" : "编辑")
-                            .font(.system(size: 17, weight: .medium))
+                            .font(.system(size: FontSizes.bodyText, weight: .medium))
                             .foregroundColor(.textHighlight1)
                     }
                 }
@@ -53,7 +54,6 @@ struct FolderListView: View {
                             .foregroundColor(.textNote)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
                     }
-                    
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 0)
@@ -66,7 +66,7 @@ struct FolderListView: View {
                             NavigationLink(destination: MilestoneListView(folder: folder)) {
                                 FolderView(folder: folder, isEditMode: isEditMode)
                                     .addSwipeAction(edge: .trailing, state: $state) {
-                                        if (!isEditMode) {
+                                        if (!isEditMode && !folder.isSystem) {
                                             HStack(spacing: 10) {
                                                 
                                                 Button {
@@ -75,8 +75,8 @@ struct FolderListView: View {
                                                     Image(systemName: "folder")
                                                         .font(.system(size: 17))
                                                 }
-                                                .frame(width: 50, height: 50)
-                                                .padding(.horizontal, 14)
+                                                .frame(width: 48, height: 48)
+                                                .padding(.horizontal, 10)
                                                 .foregroundStyle(.white)
                                                 .background(.purple6)
                                                 .cornerRadius(21)
@@ -88,8 +88,8 @@ struct FolderListView: View {
                                                     Image(systemName: "trash")
                                                         .font(.system(size: 17))
                                                 }
-                                                .frame(width: 50, height: 50)
-                                                .padding(.horizontal, 14)
+                                                .frame(width: 48, height: 48)
+                                                .padding(.horizontal, 10)
                                                 .foregroundStyle(.white)
                                                 .background(.red)
                                                 .cornerRadius(21)
@@ -137,6 +137,14 @@ struct FolderListView: View {
             }
         }
         .tint(.textHighlight1)
+        .onAppear {
+            allFolders = []
+            allFolders.insert(contentsOf: folders, at: 0)
+            
+            let systemFolder = Folder(name: Constants.FOLDER_ALL, sortOrder: 0);
+            systemFolder.isSystem = true
+            allFolders.insert(systemFolder, at: 0)
+        }
     }
 }
 
@@ -149,11 +157,11 @@ struct FolderListView: View {
         let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         let context = container.mainContext
         
-        let folder1 = Folder(name: "生日", sortOrder: 1)
-        let folder2 = Folder(name: "旅游", sortOrder: 2)
-        context.insert(folder1)
-        context.insert(folder2)
-        
+//        let folder1 = Folder(name: "生日", sortOrder: 1)
+//        let folder2 = Folder(name: "旅游", sortOrder: 2)
+//        context.insert(folder1)
+//        context.insert(folder2)
+//        
         return FolderListView().modelContainer(container)
     } catch {
         return Text("无法创建 ModelContainer")

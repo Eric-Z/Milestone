@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		07B1B9012DA1113D005192B9 /* SwipeActions in Frameworks */ = {isa = PBXBuildFile; productRef = 07B1B9002DA1113D005192B9 /* SwipeActions */; };
+		070863D32DA53C47001DB9FF /* SwipeActions in Frameworks */ = {isa = PBXBuildFile; productRef = 070863D22DA53C47001DB9FF /* SwipeActions */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				07B1B9012DA1113D005192B9 /* SwipeActions in Frameworks */,
+				070863D32DA53C47001DB9FF /* SwipeActions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +70,7 @@
 			);
 			name = Milestone;
 			packageProductDependencies = (
-				07B1B9002DA1113D005192B9 /* SwipeActions */,
+				070863D22DA53C47001DB9FF /* SwipeActions */,
 			);
 			productName = Milestone;
 			productReference = 07F641712D4A251F00B75C59 /* Milestone.app */;
@@ -84,7 +84,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 1630;
 				TargetAttributes = {
 					07F641702D4A251F00B75C59 = {
 						CreatedOnToolsVersion = 16.2;
@@ -101,7 +101,7 @@
 			mainGroup = 07F641682D4A251F00B75C59;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				07B1B8FF2DA1113D005192B9 /* XCRemoteSwiftPackageReference "SwipeActions" */,
+				070863D12DA53C47001DB9FF /* XCRemoteSwiftPackageReference "SwipeActions" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 07F641722D4A251F00B75C59 /* Products */;
@@ -169,6 +169,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = TNQRZ262NM;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -232,6 +233,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = TNQRZ262NM;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -261,7 +263,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_ASSET_PATHS = "\"Milestone/Preview Content\"";
-				DEVELOPMENT_TEAM = TNQRZ262NM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -292,7 +293,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_ASSET_PATHS = "\"Milestone/Preview Content\"";
-				DEVELOPMENT_TEAM = TNQRZ262NM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -339,7 +339,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		07B1B8FF2DA1113D005192B9 /* XCRemoteSwiftPackageReference "SwipeActions" */ = {
+		070863D12DA53C47001DB9FF /* XCRemoteSwiftPackageReference "SwipeActions" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/c-villain/SwipeActions";
 			requirement = {
@@ -350,9 +350,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		07B1B9002DA1113D005192B9 /* SwipeActions */ = {
+		070863D22DA53C47001DB9FF /* SwipeActions */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 07B1B8FF2DA1113D005192B9 /* XCRemoteSwiftPackageReference "SwipeActions" */;
+			package = 070863D12DA53C47001DB9FF /* XCRemoteSwiftPackageReference "SwipeActions" */;
 			productName = SwipeActions;
 		};
 /* End XCSwiftPackageProductDependency section */
