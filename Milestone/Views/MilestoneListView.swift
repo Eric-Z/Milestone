@@ -54,6 +54,7 @@ struct MilestoneListView: View {
                         MilestoneView(folder: folder, milestone: milestone)
                             .padding(.horizontal, Distances.itemPaddingH)
                             .padding(.bottom, Distances.itemGap)
+                            .allowMultitouching(false)
                             .addSwipeAction(state: $state) {
                                 Leading {
                                     HStack(spacing: 10) {
@@ -62,10 +63,9 @@ struct MilestoneListView: View {
                                         } label: {
                                             Image(systemName: milestone.pinned ? "pin.slash" : "pin.fill")
                                                 .font(.system(size: 17))
-                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                                .contentShape(Rectangle())
+                                                .frame(width: 64)
+                                                .frame(maxHeight: .infinity)
                                         }
-                                        .frame(width: 64)
                                         .foregroundStyle(.white)
                                         .background(.textHighlight1)
                                         .cornerRadius(21)
@@ -78,10 +78,9 @@ struct MilestoneListView: View {
                                         } label: {
                                             Image(systemName: "folder.fill")
                                                 .font(.system(size: 17))
-                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                                .contentShape(Rectangle())
+                                                .frame(width: 64)
+                                                .frame(maxHeight: .infinity)
                                         }
-                                        .frame(width: 64)
                                         .foregroundStyle(.white)
                                         .background(.purple6)
                                         .cornerRadius(21)
@@ -91,10 +90,10 @@ struct MilestoneListView: View {
                                         } label: {
                                             Image(systemName: "trash")
                                                 .font(.system(size: 17))
-                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                                .frame(width: 64)
+                                                .frame(maxHeight: .infinity)
                                                 .contentShape(Rectangle())
                                         }
-                                        .frame(width: 64)
                                         .foregroundStyle(.white)
                                         .background(.red)
                                         .cornerRadius(21)
@@ -208,7 +207,7 @@ struct MilestoneListView: View {
         let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
         milestone1.pinned = true
         
-        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪一下", date: formatter.date(from: "2025-06-25")!)
+        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
         milestone2.pinned = false
         
         context.insert(folder)
