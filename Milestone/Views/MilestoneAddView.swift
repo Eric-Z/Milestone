@@ -37,7 +37,6 @@ struct MilestoneAddView: View {
                             let milestone = Milestone(folderId: folder?.id.uuidString, title: title, remark: remark, date: date)
                             modelContext.insert(milestone)
                             try? modelContext.save()
-                            dismiss()
                         }) {
                             Text("完成")
                                 .font(.system(size: FontSizes.bodyText, weight: .semibold))

@@ -103,7 +103,10 @@ struct MilestoneListView: View {
                                             .cornerRadius(21)
                                             
                                             Button {
-                                                // 添加你的操作逻辑
+                                                modelContext.delete(milestone)
+                                                try? modelContext.save()
+                                                
+                                                filterAndSortMilestone()
                                             } label: {
                                                 Image(systemName: "trash")
                                                     .font(.system(size: 17))
@@ -184,26 +187,30 @@ struct MilestoneListView: View {
             }
         }
         .onAppear {
-            filteredMilestone = milestones.filter { milestone in
-                milestone.folderId == folder.id.uuidString
-            }.sorted { m1, m2 in
-                // 首先按pinned状态排序
-                if m1.pinned != m2.pinned {
-                    return m1.pinned
-                }
-                
-                let now = Date()
-                let diff1 = m1.date.timeIntervalSince(now)
-                let diff2 = m2.date.timeIntervalSince(now)
-                
-                // 如果两个都是未来或都是过去，按照接近当前时间的排序
-                if (diff1 >= 0 && diff2 >= 0) || (diff1 < 0 && diff2 < 0) {
-                    return abs(diff1) < abs(diff2)
-                }
-                
-                // 未来时间排在过去时间前面
-                return diff1 >= 0
+            filterAndSortMilestone()
+        }
+    }
+    
+    private func filterAndSortMilestone() {
+        filteredMilestone = milestones.filter { milestone in
+            milestone.folderId == folder.id.uuidString
+        }.sorted { m1, m2 in
+            // 首先按pinned状态排序
+            if m1.pinned != m2.pinned {
+                return m1.pinned
             }
+            
+            let now = Date()
+            let diff1 = m1.date.timeIntervalSince(now)
+            let diff2 = m2.date.timeIntervalSince(now)
+            
+            // 如果两个都是未来或都是过去，按照接近当前时间的排序
+            if (diff1 >= 0 && diff2 >= 0) || (diff1 < 0 && diff2 < 0) {
+                return abs(diff1) < abs(diff2)
+            }
+            
+            // 未来时间排在过去时间前面
+            return diff1 >= 0
         }
     }
 }
