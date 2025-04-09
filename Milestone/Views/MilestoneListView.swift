@@ -4,8 +4,8 @@ import SwipeActions
 
 struct MilestoneListView: View {
     
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.presentationMode) var presentationMode
     
     @Query private var milestones: [Milestone]
     
@@ -16,7 +16,6 @@ struct MilestoneListView: View {
     
     @State var state: SwipeState = .untouched
     
-    // 用于存储每个MilestoneView的高度信息
     @State private var milestoneSizes: [String: CGSize] = [:]
     
     var folder: Folder
@@ -159,7 +158,7 @@ struct MilestoneListView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    dismiss()
+                    presentationMode.wrappedValue.dismiss()
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")

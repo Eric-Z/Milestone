@@ -5,6 +5,7 @@ import SwiftData
 struct FolderListView: View {
     
     @Query(sort: \Folder.sortOrder) private var folders: [Folder]
+    
     @Environment(\.modelContext) private var modelContext
     
     @State private var allFolders: [Folder] = []
