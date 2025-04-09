@@ -16,6 +16,9 @@ struct MilestoneListView: View {
     
     @State var state: SwipeState = .untouched
     
+    // 用于存储每个MilestoneView的高度信息
+    @State private var milestoneSizes: [String: CGSize] = [:]
+    
     var folder: Folder
     
     var body: some View {
@@ -55,50 +58,66 @@ struct MilestoneListView: View {
                             .padding(.horizontal, Distances.itemPaddingH)
                             .padding(.bottom, Distances.itemGap)
                             .allowMultitouching(false)
+                            .background(
+                                GeometryReader { geo in
+                                    Color.clear
+                                        .onAppear {
+                                            // 获取并存储高度
+                                            milestoneSizes[milestone.id.uuidString] = geo.size
+                                        }
+                                        .onChange(of: geo.size) { oldValue, newValue in
+                                            milestoneSizes[milestone.id.uuidString] = newValue
+                                        }
+                                }
+                            )
                             .addSwipeAction(state: $state) {
                                 Leading {
-                                    HStack(spacing: 10) {
-                                        Button {
-                                            milestone.pinned.toggle()
-                                        } label: {
-                                            Image(systemName: milestone.pinned ? "pin.slash" : "pin.fill")
-                                                .font(.system(size: 17))
-                                                .frame(width: 64)
-                                                .frame(maxHeight: .infinity)
+                                    if let size = milestoneSizes[milestone.id.uuidString] {
+                                        HStack(spacing: 10) {
+                                            Button {
+                                                milestone.pinned.toggle()
+                                            } label: {
+                                                Image(systemName: milestone.pinned ? "pin.slash" : "pin.fill")
+                                                    .font(.system(size: 17))
+                                                    .frame(width: 64)
+                                                    .frame(height: size.height - 4)
+                                            }
+                                            .foregroundStyle(.white)
+                                            .background(.textHighlight1)
+                                            .cornerRadius(21)
                                         }
-                                        .foregroundStyle(.white)
-                                        .background(.textHighlight1)
-                                        .cornerRadius(21)
+                                        .padding(.leading, Distances.itemPaddingH)
                                     }
-                                    .padding(.leading, Distances.itemPaddingH)
                                 }
                                 Trailing {
-                                    HStack(spacing: 10) {
-                                        Button {
-                                        } label: {
-                                            Image(systemName: "folder.fill")
-                                                .font(.system(size: 17))
-                                                .frame(width: 64)
-                                                .frame(maxHeight: .infinity)
+                                    if let size = milestoneSizes[milestone.id.uuidString] {
+                                        HStack(spacing: 10) {
+                                            Button {
+                                            } label: {
+                                                Image(systemName: "folder.fill")
+                                                    .font(.system(size: 17))
+                                                    .frame(width: 64)
+                                                    .frame(height: size.height - 4)
+                                            }
+                                            .foregroundStyle(.white)
+                                            .background(.purple6)
+                                            .cornerRadius(21)
+                                            
+                                            Button {
+                                                // 添加你的操作逻辑
+                                            } label: {
+                                                Image(systemName: "trash")
+                                                    .font(.system(size: 17))
+                                                    .frame(width: 64)
+                                                    .frame(height: size.height - 4)
+                                                    .contentShape(Rectangle())
+                                            }
+                                            .foregroundStyle(.white)
+                                            .background(.red)
+                                            .cornerRadius(21)
                                         }
-                                        .foregroundStyle(.white)
-                                        .background(.purple6)
-                                        .cornerRadius(21)
-                                        
-                                        Button {
-                                            // 添加你的操作逻辑
-                                        } label: {
-                                            Image(systemName: "trash")
-                                                .font(.system(size: 17))
-                                                .frame(width: 64)
-                                                .frame(maxHeight: .infinity)
-                                                .contentShape(Rectangle())
-                                        }
-                                        .foregroundStyle(.white)
-                                        .background(.red)
-                                        .cornerRadius(21)
+                                        .padding(.trailing, Distances.itemPaddingH)
                                     }
-                                    .padding(.trailing, Distances.itemPaddingH)
                                 }
                             }
                     }

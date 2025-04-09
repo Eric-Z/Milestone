@@ -69,7 +69,6 @@ struct FolderListView: View {
                                     .addSwipeAction(edge: .trailing, state: $state) {
                                         if (!isEditMode && !showAddFolder && !showEditFolder && !folder.isSystem) {
                                             HStack(spacing: 10) {
-                                                
                                                 Button {
                                                     currentEditingFolder = folder
                                                     showEditFolder = true
