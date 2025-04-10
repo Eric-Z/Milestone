@@ -74,6 +74,26 @@ struct FolderListView: View {
                                     }
                                 }
                         }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            if !folder.isSystem {
+                                Button(role: .destructive) {
+                                    let generator = UINotificationFeedbackGenerator()
+                                    generator.notificationOccurred(.success)
+                                    deleteFolder(folder)
+                                } label: {
+                                    Label("删除", systemImage: "trash")
+                                }
+                                .tint(.red)
+
+                                Button {
+                                    currentEditingFolder = folder
+                                    showEditFolder = true
+                                } label: {
+                                    Label("编辑", systemImage: "square.and.pencil")
+                                }
+                                .tint(.purple6)
+                            }
+                        }
                         .sheet(isPresented: $showEditFolder) {
                             if let folderToEdit = currentEditingFolder {
                                 FolderEditView(folder: folderToEdit)
@@ -94,7 +114,7 @@ struct FolderListView: View {
                         MilestoneListView(folder: folder)
                     }
                 }
-
+                
                 // 底部按钮
                 HStack(spacing: 0) {
                     Button {
@@ -133,6 +153,9 @@ struct FolderListView: View {
         }
     }
     
+    /**
+     刷新文件夹列表
+     */
     private func refreshFolders() {
         allFolders = []
         allFolders.insert(contentsOf: folders, at: 0)
@@ -140,6 +163,18 @@ struct FolderListView: View {
         let systemFolder = Folder(name: Constants.FOLDER_ALL, sortOrder: 0);
         systemFolder.isSystem = true
         allFolders.insert(systemFolder, at: 0)
+    }
+    
+    /**
+     删除文件夹
+     */
+    private func deleteFolder(_ folder: Folder) {
+        if allFolders.firstIndex(where: { $0.id == folder.id }) != nil {
+            if !folder.isSystem {
+                modelContext.delete(folder)
+                try? modelContext.save()
+            }
+        }
     }
 }
 
