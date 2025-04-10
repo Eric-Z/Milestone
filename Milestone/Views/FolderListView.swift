@@ -14,6 +14,7 @@ struct FolderListView: View {
     
     @State private var showAddFolder = false
     @State private var showEditFolder = false
+    @State private var selectedFolder: Folder? = nil
     
     @State var state: SwipeState = .untouched
     
@@ -61,56 +62,39 @@ struct FolderListView: View {
                 .padding(.bottom, 12)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 
-                ScrollView {
+                List {
                     ForEach(allFolders) { folder in
                         ZStack {
-                            NavigationLink(destination: MilestoneListView(folder: folder)) {
-                                FolderView(folder: folder, isEditMode: isEditMode)
-                                    .allowMultitouching(false)
-                                    .addSwipeAction(edge: .trailing, state: $state) {
-                                        if (!isEditMode && !showAddFolder && !showEditFolder && !folder.isSystem) {
-                                            HStack(spacing: 10) {
-                                                Button {
-                                                    currentEditingFolder = folder
-                                                    showEditFolder = true
-                                                } label: {
-                                                    Image(systemName: "folder")
-                                                        .font(.system(size: 17))
-                                                }
-                                                .frame(width: 48, height: 48)
-                                                .padding(.horizontal, 10)
-                                                .foregroundStyle(.white)
-                                                .background(.purple6)
-                                                .cornerRadius(21)
-                                                
-                                                Button {
-                                                    modelContext.delete(folder)
-                                                    try? modelContext.save()
-                                                    refreshFolders()
-                                                } label: {
-                                                    Image(systemName: "trash")
-                                                        .font(.system(size: 17))
-                                                }
-                                                .frame(width: 48, height: 48)
-                                                .padding(.horizontal, 10)
-                                                .foregroundStyle(.white)
-                                                .background(.red)
-                                                .cornerRadius(21)
-                                            }
-                                            .padding(.trailing, Distances.itemPaddingH)
-                                        }
+                            FolderView(folder: folder, isEditMode: isEditMode)
+                                .padding(0)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if !isEditMode {
+                                        selectedFolder = folder
                                     }
-                            }
+                                }
                         }
                         .sheet(isPresented: $showEditFolder) {
                             if let folderToEdit = currentEditingFolder {
                                 FolderEditView(folder: folderToEdit)
                             }
                         }
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                     }
                 }
-                .animation(.easeInOut, value: folders.count)
-                
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .navigationDestination(isPresented: Binding(
+                    get: { selectedFolder != nil },
+                    set: { if !$0 { selectedFolder = nil }}
+                )) {
+                    if let folder = selectedFolder {
+                        MilestoneListView(folder: folder)
+                    }
+                }
+
                 // 底部按钮
                 HStack(spacing: 0) {
                     Button {
