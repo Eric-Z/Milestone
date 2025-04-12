@@ -12,6 +12,7 @@ final class Milestone: Identifiable {
     var pinned: Bool
     var deleteDate: Date?
     var deleted: Bool
+    var isAddOrEdit: Bool
     
     init(id: UUID = UUID(), folderId: String?, title: String, remark: String, date: Date) {
         self.id = id
@@ -22,5 +23,6 @@ final class Milestone: Identifiable {
         self.pinned = false
         self.deleteDate = nil
         self.deleted = false
+        self.isAddOrEdit = false
     }
 } 

@@ -14,10 +14,6 @@ struct MilestoneListView: View {
     
     @Namespace private var animation
     
-    @State var state: SwipeState = .untouched
-    
-    @State private var milestoneSizes: [String: CGSize] = [:]
-    
     var folder: Folder
     
     var body: some View {
@@ -53,45 +49,44 @@ struct MilestoneListView: View {
             } else {
                 List {
                     ForEach(filteredMilestone) { milestone in
-                        MilestoneView(folder: folder, milestone: milestone)
-                            .padding(.horizontal, Distances.itemPaddingH)
-                            .padding(.bottom, Distances.itemGap)
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                        if !milestone.isAddOrEdit {
+                            MilestoneView(folder: folder, milestone: milestone)
+                                .padding(.horizontal, Distances.itemPaddingH)
+                                .padding(.bottom, Distances.itemGap)
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                        } else {
+                            MilestoneAddEditView(milestone: nil)
+                                .padding(.horizontal, Distances.listPadding)
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                        }
                     }
                 }
                 .listStyle(.plain)
-            }
-            
-            if isAddMode {
-                MilestoneAddView(folder: folder)
-                    .padding(.horizontal, Distances.listPadding)
-                    .matchedGeometryEffect(id: "NewMilestone", in: animation)
-                Spacer()
             }
         }
         .navigationBarBackButtonHidden(true)
         .overlay(
             VStack {
                 Spacer()
-                
-                if !isAddMode {
-                    Button {
-                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7, blendDuration: 0.25)) {
-                            isAddMode = true
-                        }
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundColor(.white)
-                            .frame(width: 54, height: 54)
-                            .background(Color.textHighlight1)
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                            .matchedGeometryEffect(id: "NewMilestone", in: animation)
-                            .padding(.bottom, 50)
+                Button {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7, blendDuration: 0.25)) {
+                        let newMilestone = Milestone(folderId: nil, title: "", remark: "", date: Date())
+                        newMilestone.isAddOrEdit = true
+                        filteredMilestone.append(newMilestone)
                     }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(.white)
+                        .frame(width: 54, height: 54)
+                        .background(Color.textHighlight1)
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .padding(.bottom, 50)
                 }
             }
                 .ignoresSafeArea(.container, edges: .bottom)
@@ -129,11 +124,14 @@ struct MilestoneListView: View {
         }
     }
     
+    /**
+     里程碑排序
+     */
     private func filterAndSortMilestone() {
         filteredMilestone = milestones.filter { milestone in
             milestone.folderId == folder.id.uuidString
         }.sorted { m1, m2 in
-            // 首先按pinned状态排序
+            // 首先按 pinned 状态排序
             if m1.pinned != m2.pinned {
                 return m1.pinned
             }
