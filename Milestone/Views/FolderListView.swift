@@ -1,5 +1,4 @@
 import SwiftUI
-import SwipeActions
 import SwiftData
 
 struct FolderListView: View {
@@ -15,8 +14,6 @@ struct FolderListView: View {
     @State private var showAddFolder = false
     @State private var showEditFolder = false
     @State private var selectedFolder: Folder? = nil
-    
-    @State var state: SwipeState = .untouched
     
     var body: some View {
         NavigationStack {
@@ -64,48 +61,45 @@ struct FolderListView: View {
                 
                 List {
                     ForEach(allFolders) { folder in
-                        ZStack {
-                            FolderView(folder: folder, isEditMode: isEditMode)
-                                .padding(0)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    if !isEditMode {
-                                        selectedFolder = folder
+                        FolderView(folder: folder, isEditMode: isEditMode)
+                            .padding(0)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if !isEditMode {
+                                    selectedFolder = folder
+                                }
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                if !folder.isSystem {
+                                    Button(role: .destructive) {
+                                        let generator = UINotificationFeedbackGenerator()
+                                        generator.notificationOccurred(.success)
+                                        deleteFolder(folder)
+                                    } label: {
+                                        Label("删除", systemImage: "trash")
                                     }
+                                    .tint(.red)
+                                    
+                                    Button {
+                                        currentEditingFolder = folder
+                                        showEditFolder = true
+                                    } label: {
+                                        Label("编辑", systemImage: "square.and.pencil")
+                                    }
+                                    .tint(.purple6)
                                 }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            if !folder.isSystem {
-                                Button(role: .destructive) {
-                                    let generator = UINotificationFeedbackGenerator()
-                                    generator.notificationOccurred(.success)
-                                    deleteFolder(folder)
-                                } label: {
-                                    Label("删除", systemImage: "trash")
-                                }
-                                .tint(.red)
-
-                                Button {
-                                    currentEditingFolder = folder
-                                    showEditFolder = true
-                                } label: {
-                                    Label("编辑", systemImage: "square.and.pencil")
-                                }
-                                .tint(.purple6)
                             }
-                        }
-                        .sheet(isPresented: $showEditFolder) {
-                            if let folderToEdit = currentEditingFolder {
-                                FolderEditView(folder: folderToEdit)
+                            .sheet(isPresented: $showEditFolder) {
+                                if let folderToEdit = currentEditingFolder {
+                                    FolderEditView(folder: folderToEdit)
+                                }
                             }
-                        }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                     }
                 }
                 .listStyle(.plain)
-                .scrollContentBackground(.hidden)
                 .navigationDestination(isPresented: Binding(
                     get: { selectedFolder != nil },
                     set: { if !$0 { selectedFolder = nil }}
