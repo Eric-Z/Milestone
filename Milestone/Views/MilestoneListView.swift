@@ -51,79 +51,17 @@ struct MilestoneListView: View {
             if filteredMilestone.isEmpty && !isAddMode {
                 NoMilestoneView()
             } else {
-                ScrollView {
+                List {
                     ForEach(filteredMilestone) { milestone in
                         MilestoneView(folder: folder, milestone: milestone)
                             .padding(.horizontal, Distances.itemPaddingH)
                             .padding(.bottom, Distances.itemGap)
-                            .allowMultitouching(false)
-                            .background(
-                                GeometryReader { geo in
-                                    Color.clear
-                                        .onAppear {
-                                            // 获取并存储高度
-                                            milestoneSizes[milestone.id.uuidString] = geo.size
-                                        }
-                                        .onChange(of: geo.size) { oldValue, newValue in
-                                            milestoneSizes[milestone.id.uuidString] = newValue
-                                        }
-                                }
-                            )
-                            .addSwipeAction(state: $state) {
-                                Leading {
-                                    if let size = milestoneSizes[milestone.id.uuidString] {
-                                        HStack(spacing: 10) {
-                                            Button {
-                                                milestone.pinned.toggle()
-                                            } label: {
-                                                Image(systemName: milestone.pinned ? "pin.slash" : "pin.fill")
-                                                    .font(.system(size: 17))
-                                                    .frame(width: 64)
-                                                    .frame(height: size.height - 4)
-                                            }
-                                            .foregroundStyle(.white)
-                                            .background(.textHighlight1)
-                                            .cornerRadius(21)
-                                        }
-                                        .padding(.leading, Distances.itemPaddingH)
-                                    }
-                                }
-                                Trailing {
-                                    if let size = milestoneSizes[milestone.id.uuidString] {
-                                        HStack(spacing: 10) {
-                                            Button {
-                                            } label: {
-                                                Image(systemName: "folder.fill")
-                                                    .font(.system(size: 17))
-                                                    .frame(width: 64)
-                                                    .frame(height: size.height - 4)
-                                            }
-                                            .foregroundStyle(.white)
-                                            .background(.purple6)
-                                            .cornerRadius(21)
-                                            
-                                            Button {
-                                                modelContext.delete(milestone)
-                                                try? modelContext.save()
-                                                
-                                                filterAndSortMilestone()
-                                            } label: {
-                                                Image(systemName: "trash")
-                                                    .font(.system(size: 17))
-                                                    .frame(width: 64)
-                                                    .frame(height: size.height - 4)
-                                                    .contentShape(Rectangle())
-                                            }
-                                            .foregroundStyle(.white)
-                                            .background(.red)
-                                            .cornerRadius(21)
-                                        }
-                                        .padding(.trailing, Distances.itemPaddingH)
-                                    }
-                                }
-                            }
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                     }
                 }
+                .listStyle(.plain)
             }
             
             if isAddMode {
