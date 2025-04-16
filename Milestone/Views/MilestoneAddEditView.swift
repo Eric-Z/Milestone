@@ -7,11 +7,14 @@ struct MilestoneAddEditView: View {
     @Environment(\.dismiss) private var dismiss
     
     var milestone: Milestone?
+    var folder: Folder?
     
     @State private var title: String = ""
     @State private var remark: String = ""
     @State private var date: Date = Date()
     @State private var showDatePicker: Bool = false
+    
+    var onSave: () -> Void = {}
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -24,12 +27,14 @@ struct MilestoneAddEditView: View {
                     
                     Button(action: {
                         if let theMilestone = self.milestone {
+                            theMilestone.folderId = folder?.id.uuidString
                             theMilestone.title = title
                             theMilestone.remark = remark
                             theMilestone.date = date
                         } else {
-                            let milestone = Milestone(folderId: milestone?.folderId, title: title, remark: remark, date: date)
+                            let milestone = Milestone(folderId: folder?.id.uuidString, title: title, remark: remark, date: date)
                             modelContext.insert(milestone)
+                            self.onSave()
                         }
                         try? modelContext.save()
                     }) {
@@ -50,28 +55,26 @@ struct MilestoneAddEditView: View {
             .padding(.vertical, Distances.itemPaddingV)
             .frame(height: 72)
             
-            HStack(spacing: 0) {
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        showDatePicker.toggle()
-                    }
-                } label: {
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    showDatePicker.toggle()
+                }
+            } label: {
+                HStack(spacing: 8) {
                     Image(systemName: "calendar")
                         .font(.system(size: 17))
                         .imageScale(.large)
-                        .foregroundColor(.textHighlight1)
+
+                    Text(dateFormatter.string(from: date))
+                        .font(.system(size: 17))
                 }
-                
-                Text(dateFormatter.string(from: date))
-                    .font(.system(size: 17))
-                    .foregroundColor(.textHighlight1)
-                    .padding(.leading, 12)
+                .foregroundColor(.textHighlight1)
+                .padding(.horizontal, Distances.itemPaddingH)
+                .padding(.vertical, 11)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.areaItem)
             }
-            .padding(.horizontal, Distances.itemPaddingH)
-            .padding(.top, 10)
-            .padding(.bottom, 11)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.areaItem)
+            .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.areaBackground)
@@ -91,15 +94,6 @@ struct MilestoneAddEditView: View {
         }
         
         if showDatePicker {
-            Color.black.opacity(0.1)
-                .edgesIgnoringSafeArea(.all)
-                .onTapGesture {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        showDatePicker = false
-                    }
-                }
-                .transition(.opacity)
-            
             VStack(spacing: 0) {
                 DatePicker("选择日期", selection: $date, displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
@@ -122,9 +116,8 @@ struct MilestoneAddEditView: View {
                 .combined(with: .opacity)
             )
         }
-            
+        
     }
-    
     
     /**
      添加日期格式化器

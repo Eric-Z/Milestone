@@ -4,7 +4,7 @@ import SwiftData
 @Model
 final class Milestone: Identifiable {
     
-    var id: UUID
+var id: UUID
     var folderId: String?
     var title: String
     var remark: String

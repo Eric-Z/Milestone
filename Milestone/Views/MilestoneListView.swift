@@ -10,7 +10,6 @@ struct MilestoneListView: View {
     @Query private var milestones: [Milestone]
     
     @State private var filteredMilestone: [Milestone] = []
-    @State private var isAddMode = false;
     
     @Namespace private var animation
     
@@ -24,7 +23,7 @@ struct MilestoneListView: View {
                         .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
                     
                     Group {
-                        if filteredMilestone.isEmpty {
+                        if filteredMilestone.filter({ $0.id != Constants.MILESTONE_TEMP_UUID }).isEmpty {
                             Text("暂无里程碑")
                                 .font(.system(size: FontSizes.largeNoteText))
                         } else {
@@ -44,7 +43,7 @@ struct MilestoneListView: View {
             .padding(.top, 0)
             .padding(.bottom, 12)
             
-            if filteredMilestone.isEmpty && !isAddMode {
+            if filteredMilestone.isEmpty {
                 NoMilestoneView()
             } else {
                 List {
@@ -56,12 +55,29 @@ struct MilestoneListView: View {
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
                                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        let generator = UINotificationFeedbackGenerator()
+                                        generator.notificationOccurred(.success)
+                                        modelContext.delete(milestone)
+                                        try? modelContext.save()
+                                        
+                                        filterAndSortMilestone()
+                                    } label: {
+                                        Label("删除", systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                }
                         } else {
-                            MilestoneAddEditView(milestone: nil)
+                            MilestoneAddEditView(milestone: nil, folder: folder, onSave: {
+                                filteredMilestone.removeAll { $0.id == Constants.MILESTONE_TEMP_UUID }
+                                filterAndSortMilestone()
+                            })
                                 .padding(.horizontal, Distances.listPadding)
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
                                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
                         }
                     }
                 }
@@ -73,10 +89,13 @@ struct MilestoneListView: View {
             VStack {
                 Spacer()
                 Button {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7, blendDuration: 0.25)) {
-                        let newMilestone = Milestone(folderId: nil, title: "", remark: "", date: Date())
-                        newMilestone.isAddOrEdit = true
-                        filteredMilestone.append(newMilestone)
+                    if !filteredMilestone.contains(where: { $0.id == Constants.MILESTONE_TEMP_UUID }) {
+                        withAnimation(.spring()) {
+                            let newMilestone = Milestone(folderId: folder.id.uuidString, title: "", remark: "", date: Date())
+                            newMilestone.id = Constants.MILESTONE_TEMP_UUID
+                            newMilestone.isAddOrEdit = true
+                            filteredMilestone.append(newMilestone)
+                        }
                     }
                 } label: {
                     Image(systemName: "plus")
