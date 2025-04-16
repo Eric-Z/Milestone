@@ -10,223 +10,260 @@ struct MilestoneListView: View {
     @Query private var milestones: [Milestone]
     
     @State private var filteredMilestone: [Milestone] = []
-    @State private var showAddEditView: Bool = false // State to control overlay visibility
-    
-    @Namespace private var animation
+    @State private var showAddEditView: Bool = false
     
     var folder: Folder
     
     var body: some View {
         ZStack(alignment: .bottom) {
+            mainContentView
+                .zIndex(0)
             
-            // Layer 0: Main Content (Header + List)
-            VStack(alignment: .leading, spacing: 0) {
-                // Header
-                HStack(alignment: .center, spacing: 0) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("\(folder.name)")
-                            .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
-                        
-                        Group {
-                            // Count only real milestones
-                            if filteredMilestone.isEmpty {
-                                Text("暂无里程碑")
-                                    .font(.system(size: FontSizes.largeNoteText))
-                            } else {
-                                HStack(spacing: 0) {
-                                    Text("\(filteredMilestone.count)")
-                                        .font(.system(size: FontSizes.largeNoteNumber))
-                                    Text("个里程碑")
-                                        .font(.system(size: FontSizes.largeNoteText))
-                                }
-                            }
-                        }
-                        .foregroundStyle(.textNote)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 0)
-                .padding(.bottom, 12)
-                
-                // List or Empty View
-                if filteredMilestone.isEmpty {
-                    // Keep NoMilestoneView logic if needed, but ensure it doesn't conflict with Add/Edit overlay
-                     if !showAddEditView { // Only show if not adding/editing
-                         NoMilestoneView()
-                             .transition(.opacity)
-                     } else {
-                         // Optionally show a placeholder or empty space while adding
-                         Spacer()
-                     }
-                } else {
-                    List {
-                        // Loop through real milestones only
-                        ForEach(filteredMilestone) { milestone in
-                             MilestoneView(folder: folder, milestone: milestone)
-                                .padding(.horizontal, Distances.itemPaddingH)
-                                .padding(.bottom, Distances.itemGap)
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    Button(role: .destructive) {
-                                        deleteMilestone(milestone)
-                                    } label: {
-                                        Label("删除", systemImage: "trash")
-                                    }
-                                    .tint(.red)
-                                }
-                                // Removed the 'else' branch for MilestoneAddEditView
-                        }
-                    }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
-                }
-            }
-            .zIndex(0) // Base layer
-
-            // Layer 1: Background Dimming/Tap Layer (Conditional)
             if showAddEditView {
-                Color.black.opacity(0.1) // Dimming effect
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                         // 收起键盘
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        withAnimation(.spring()) {
-                            showAddEditView = false
-                        }
-                    }
+                maskLayer
                     .zIndex(1)
-                    .transition(.opacity) // Animate background fade
-            }
-
-            // Layer 2: Add/Edit View Overlay (Conditional)
-            if showAddEditView {
-                MilestoneAddEditView(milestone: nil, folder: folder, onSave: {
-                    // Save is handled internally, just dismiss the view
-                    withAnimation(.spring()) {
-                        showAddEditView = false
-                    }
-                    // Refresh list after save
-                    filterAndSortMilestone()
-                })
-                .padding(.horizontal, Distances.listPadding) // Add padding to position it
-                .padding(.bottom, 120) // Add bottom padding to avoid FAB position
-                .zIndex(2)
-                .transition(.move(edge: .bottom).combined(with: .opacity)) // Animate from bottom
             }
             
-            // Layer 3: Floating Action Button (FAB)
-            VStack {
-                Spacer()
-                // Only show FAB when add/edit view is not visible
-                if !showAddEditView {
-                    Button {
-                        if !showAddEditView { // Prevent opening if already open
-                            // 收起键盘
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            withAnimation(.spring()) {
-                                showAddEditView = true
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundColor(.white)
-                            .frame(width: 54, height: 54)
-                            .background(Color.textHighlight1)
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                            .padding(.bottom, 50)
-                    }
-                }
+            if showAddEditView {
+                addEditOverlay
+                    .zIndex(2)
             }
-            .ignoresSafeArea(.container, edges: .bottom)
-            .zIndex(3) // Ensure FAB is on top
+            
+            if !showAddEditView {
+                floatingActionButton
+                    .zIndex(3)
+            }
         }
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-             // Keep toolbar items as they were
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    presentationMode.wrappedValue.dismiss()
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 17))
-                            .foregroundStyle(.textHighlight1)
-                        
-                        Text("文件夹")
-                            .font(.system(size: 17))
-                            .foregroundStyle(.textHighlight1)
-                    }
-                    .padding(.vertical, 11)
-                }
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.textHighlight1)
-                }
-            }
+        .toolbar { toolbarContent }
+        .onAppear(perform: filterAndSortMilestone)
+    }
+    
+    private var mainContentView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            headerView
+            listViewOrEmptyState
         }
-        .onAppear {
-            // Simple filter and sort on appear
-            filterAndSortMilestone()
-        }
-        // Remove tap gesture from here if it exists
     }
     
     /**
-     Delete Milestone
+     标题
+     */
+    private var headerView: some View {
+        HStack(alignment: .center, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(folder.name)")
+                    .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
+                
+                Group {
+                    if filteredMilestone.isEmpty {
+                        Text("暂无里程碑")
+                            .font(.system(size: FontSizes.largeNoteText))
+                    } else {
+                        HStack(spacing: 0) {
+                            Text("\(filteredMilestone.count)")
+                                .font(.system(size: FontSizes.largeNoteNumber))
+                            Text("个里程碑")
+                                .font(.system(size: FontSizes.largeNoteText))
+                        }
+                    }
+                }
+                .foregroundStyle(.textNote)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 0)
+        .padding(.bottom, 12)
+    }
+    
+    /**
+     里程碑列表或空视图
+     */
+    @ViewBuilder
+    private var listViewOrEmptyState: some View {
+        if filteredMilestone.isEmpty {
+            if !showAddEditView {
+                NoMilestoneView()
+                    .transition(.opacity)
+            } else {
+                Spacer()
+            }
+        } else {
+            milestoneList
+        }
+    }
+    
+    /**
+     里程碑列表
+     */
+    private var milestoneList: some View {
+        List {
+            ForEach(filteredMilestone) { milestone in
+                MilestoneView(folder: folder, milestone: milestone)
+                    .padding(.horizontal, Distances.itemPaddingH)
+                    .padding(.bottom, Distances.itemGap)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            deleteMilestone(milestone)
+                        } label: {
+                            Label("删除", systemImage: "trash")
+                        }
+                        .tint(.red)
+                    }
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+    }
+    
+    /**
+     遮罩层
+     */
+    private var maskLayer: some View {
+        Color.black.opacity(0.1)
+            .ignoresSafeArea()
+            .onTapGesture {
+                dismissAddEditView()
+            }
+            .transition(.opacity)
+    }
+    
+    /**
+     新增/更新里程碑弹框
+     */
+    private var addEditOverlay: some View {
+        MilestoneAddEditView(milestone: nil, folder: folder, onSave: {
+            dismissAddEditView()
+            filterAndSortMilestone()
+        })
+        .padding(.horizontal, Distances.listPadding)
+        .padding(.bottom, 120)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+    
+    /**
+     新增里程碑按钮
+     */
+    private var floatingActionButton: some View {
+        VStack {
+            Spacer()
+            Button {
+                presentAddEditView()
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 54, height: 54)
+                    .background(Color.textHighlight1)
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    .padding(.bottom,  50)
+            }
+        }
+        .ignoresSafeArea(.container, edges: .bottom)
+        .transition(.opacity)
+    }
+    
+    /**
+     工具栏
+     */
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            Button {
+                presentationMode.wrappedValue.dismiss()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.textHighlight1)
+                    
+                    Text("文件夹")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.textHighlight1)
+                }
+                .padding(.vertical, 11)
+            }
+        }
+        
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button {
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .font(.system(size: 17))
+                    .foregroundStyle(.textHighlight1)
+            }
+        }
+    }
+    
+    /**
+     展示新增/更新里程碑弹窗
+     */
+    private func presentAddEditView() {
+        if !showAddEditView {
+            // 收起键盘
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            withAnimation(.spring()) {
+                showAddEditView = true
+            }
+        }
+    }
+    
+    /**
+     隐藏新增/更新里程碑弹窗
+     */
+    private func dismissAddEditView() {
+        // 收起键盘
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        withAnimation(.spring()) {
+            showAddEditView = false
+        }
+    }
+    
+    /**
+     删除里程碑
      */
     private func deleteMilestone(_ milestone: Milestone) {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
+        
         modelContext.delete(milestone)
         try? modelContext.save()
-        filterAndSortMilestone() // Refresh list
+        
+        filterAndSortMilestone()
     }
 
     /**
-     里程碑排序 (Simplified - no temporary item logic)
+     里程碑列表排序
      */
     private func filterAndSortMilestone() {
-        // Filter for milestones belonging to the current folder
-        filteredMilestone = milestones.filter { milestone in
-            milestone.folderId == folder.id.uuidString
-        }.sorted { m1, m2 in
-            // Pinned items first
-            if m1.pinned != m2.pinned {
-                return m1.pinned
+        filteredMilestone = milestones
+            .filter { $0.folderId == folder.id.uuidString }
+            .sorted { m1, m2 in
+                // Pinned items first
+                if m1.pinned != m2.pinned {
+                    return m1.pinned
+                }
+                
+                // Then sort by date proximity
+                let now = Date()
+                let diff1 = m1.date.timeIntervalSince(now)
+                let diff2 = m2.date.timeIntervalSince(now)
+                
+                // Future dates before past dates
+                if (diff1 >= 0 && diff2 < 0) { return true }
+                if (diff1 < 0 && diff2 >= 0) { return false }
+                
+                // If both future or both past, sort by closeness to now
+                return abs(diff1) < abs(diff2)
             }
-            
-            // Then sort by date proximity
-            let now = Date()
-            let diff1 = m1.date.timeIntervalSince(now)
-            let diff2 = m2.date.timeIntervalSince(now)
-            
-            // Future dates before past dates
-            if (diff1 >= 0 && diff2 < 0) {
-                return true
-            }
-            if (diff1 < 0 && diff2 >= 0) {
-                return false
-            }
-            
-            // If both future or both past, sort by closeness to now
-            return abs(diff1) < abs(diff2)
-        }
     }
 }
 
 #Preview {
-    // Preview remains largely the same, just don't need temporary item logic
     do {
         let schema = Schema([
             Folder.self, Milestone.self
