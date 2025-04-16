@@ -45,17 +45,18 @@ struct MilestoneAddEditView: View {
                     .disabled(title.isEmpty)
                 }
                 
-                HStack(spacing: 0) {
-                    TextField("添加备注", text: $remark)
-                        .font(.system(size: 14))
-                        .foregroundColor(.textPlaceholderDisable)
-                }
+                TextField("添加备注", text: $remark)
+                    .font(.system(size: 14))
+                    .foregroundColor(.textPlaceholderDisable)
             }
             .padding(.horizontal, Distances.itemPaddingH)
             .padding(.vertical, Distances.itemPaddingV)
             .frame(height: 72)
             
             Button {
+                // 收起键盘
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     showDatePicker.toggle()
                 }
@@ -64,7 +65,7 @@ struct MilestoneAddEditView: View {
                     Image(systemName: "calendar")
                         .font(.system(size: 17))
                         .imageScale(.large)
-
+                    
                     Text(dateFormatter.string(from: date))
                         .font(.system(size: 17))
                 }
@@ -76,8 +77,6 @@ struct MilestoneAddEditView: View {
             }
             .buttonStyle(.plain)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.areaBackground)
         .cornerRadius(21)
         .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 10)
         .overlay(
