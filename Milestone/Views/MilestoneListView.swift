@@ -10,46 +10,60 @@ struct MilestoneListView: View {
     @Query private var milestones: [Milestone]
     
     @State private var filteredMilestone: [Milestone] = []
+    @State private var showAddEditView: Bool = false // State to control overlay visibility
     
     @Namespace private var animation
     
     var folder: Folder
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .center, spacing: 0) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("\(folder.name)")
-                        .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
-                    
-                    Group {
-                        if filteredMilestone.filter({ $0.id != Constants.MILESTONE_TEMP_UUID }).isEmpty {
-                            Text("暂无里程碑")
-                                .font(.system(size: FontSizes.largeNoteText))
-                        } else {
-                            HStack(spacing: 0) {
-                                Text("\(filteredMilestone.count)")
-                                    .font(.system(size: FontSizes.largeNoteNumber))
-                                Text("个里程碑")
+        ZStack(alignment: .bottom) {
+            
+            // Layer 0: Main Content (Header + List)
+            VStack(alignment: .leading, spacing: 0) {
+                // Header
+                HStack(alignment: .center, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("\(folder.name)")
+                            .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
+                        
+                        Group {
+                            // Count only real milestones
+                            if filteredMilestone.isEmpty {
+                                Text("暂无里程碑")
                                     .font(.system(size: FontSizes.largeNoteText))
+                            } else {
+                                HStack(spacing: 0) {
+                                    Text("\(filteredMilestone.count)")
+                                        .font(.system(size: FontSizes.largeNoteNumber))
+                                    Text("个里程碑")
+                                        .font(.system(size: FontSizes.largeNoteText))
+                                }
                             }
                         }
+                        .foregroundStyle(.textNote)
                     }
-                    .foregroundStyle(.textNote)
+                    Spacer()
                 }
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 0)
-            .padding(.bottom, 12)
-            
-            if filteredMilestone.isEmpty {
-                NoMilestoneView()
-            } else {
-                List {
-                    ForEach(filteredMilestone) { milestone in
-                        if !milestone.isAddOrEdit {
-                            MilestoneView(folder: folder, milestone: milestone)
+                .padding(.horizontal, 20)
+                .padding(.top, 0)
+                .padding(.bottom, 12)
+                
+                // List or Empty View
+                if filteredMilestone.isEmpty {
+                    // Keep NoMilestoneView logic if needed, but ensure it doesn't conflict with Add/Edit overlay
+                     if !showAddEditView { // Only show if not adding/editing
+                         NoMilestoneView()
+                             .transition(.opacity)
+                     } else {
+                         // Optionally show a placeholder or empty space while adding
+                         Spacer()
+                     }
+                } else {
+                    List {
+                        // Loop through real milestones only
+                        ForEach(filteredMilestone) { milestone in
+                             MilestoneView(folder: folder, milestone: milestone)
                                 .padding(.horizontal, Distances.itemPaddingH)
                                 .padding(.bottom, Distances.itemGap)
                                 .listRowSeparator(.hidden)
@@ -57,60 +71,83 @@ struct MilestoneListView: View {
                                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
-                                        let generator = UINotificationFeedbackGenerator()
-                                        generator.notificationOccurred(.success)
-                                        modelContext.delete(milestone)
-                                        try? modelContext.save()
-                                        
-                                        filterAndSortMilestone()
+                                        deleteMilestone(milestone)
                                     } label: {
                                         Label("删除", systemImage: "trash")
                                     }
                                     .tint(.red)
                                 }
-                        } else {
-                            MilestoneAddEditView(milestone: nil, folder: folder, onSave: {
-                                filteredMilestone.removeAll { $0.id == Constants.MILESTONE_TEMP_UUID }
-                                filterAndSortMilestone()
-                            })
-                                .padding(.horizontal, Distances.listPadding)
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                                // Removed the 'else' branch for MilestoneAddEditView
                         }
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
-                .listStyle(.plain)
             }
-        }
-        .navigationBarBackButtonHidden(true)
-        .overlay(
+            .zIndex(0) // Base layer
+
+            // Layer 1: Background Dimming/Tap Layer (Conditional)
+            if showAddEditView {
+                Color.black.opacity(0.1) // Dimming effect
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                         // 收起键盘
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        withAnimation(.spring()) {
+                            showAddEditView = false
+                        }
+                    }
+                    .zIndex(1)
+                    .transition(.opacity) // Animate background fade
+            }
+
+            // Layer 2: Add/Edit View Overlay (Conditional)
+            if showAddEditView {
+                MilestoneAddEditView(milestone: nil, folder: folder, onSave: {
+                    // Save is handled internally, just dismiss the view
+                    withAnimation(.spring()) {
+                        showAddEditView = false
+                    }
+                    // Refresh list after save
+                    filterAndSortMilestone()
+                })
+                .padding(.horizontal, Distances.listPadding) // Add padding to position it
+                .padding(.bottom, 120) // Add bottom padding to avoid FAB position
+                .zIndex(2)
+                .transition(.move(edge: .bottom).combined(with: .opacity)) // Animate from bottom
+            }
+            
+            // Layer 3: Floating Action Button (FAB)
             VStack {
                 Spacer()
-                Button {
-                    if !filteredMilestone.contains(where: { $0.id == Constants.MILESTONE_TEMP_UUID }) {
-                        withAnimation(.spring()) {
-                            let newMilestone = Milestone(folderId: folder.id.uuidString, title: "", remark: "", date: Date())
-                            newMilestone.id = Constants.MILESTONE_TEMP_UUID
-                            newMilestone.isAddOrEdit = true
-                            filteredMilestone.append(newMilestone)
+                // Only show FAB when add/edit view is not visible
+                if !showAddEditView {
+                    Button {
+                        if !showAddEditView { // Prevent opening if already open
+                            // 收起键盘
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            withAnimation(.spring()) {
+                                showAddEditView = true
+                            }
                         }
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.white)
+                            .frame(width: 54, height: 54)
+                            .background(Color.textHighlight1)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                            .padding(.bottom, 50)
                     }
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 54, height: 54)
-                        .background(Color.textHighlight1)
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        .padding(.bottom, 50)
                 }
             }
-                .ignoresSafeArea(.container, edges: .bottom)
-        )
+            .ignoresSafeArea(.container, edges: .bottom)
+            .zIndex(3) // Ensure FAB is on top
+        }
+        .navigationBarBackButtonHidden(true)
         .toolbar {
+             // Keep toolbar items as they were
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     presentationMode.wrappedValue.dismiss()
@@ -139,38 +176,57 @@ struct MilestoneListView: View {
             }
         }
         .onAppear {
+            // Simple filter and sort on appear
             filterAndSortMilestone()
         }
+        // Remove tap gesture from here if it exists
     }
     
     /**
-     里程碑排序
+     Delete Milestone
+     */
+    private func deleteMilestone(_ milestone: Milestone) {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        modelContext.delete(milestone)
+        try? modelContext.save()
+        filterAndSortMilestone() // Refresh list
+    }
+
+    /**
+     里程碑排序 (Simplified - no temporary item logic)
      */
     private func filterAndSortMilestone() {
+        // Filter for milestones belonging to the current folder
         filteredMilestone = milestones.filter { milestone in
             milestone.folderId == folder.id.uuidString
         }.sorted { m1, m2 in
-            // 首先按 pinned 状态排序
+            // Pinned items first
             if m1.pinned != m2.pinned {
                 return m1.pinned
             }
             
+            // Then sort by date proximity
             let now = Date()
             let diff1 = m1.date.timeIntervalSince(now)
             let diff2 = m2.date.timeIntervalSince(now)
             
-            // 如果两个都是未来或都是过去，按照接近当前时间的排序
-            if (diff1 >= 0 && diff2 >= 0) || (diff1 < 0 && diff2 < 0) {
-                return abs(diff1) < abs(diff2)
+            // Future dates before past dates
+            if (diff1 >= 0 && diff2 < 0) {
+                return true
+            }
+            if (diff1 < 0 && diff2 >= 0) {
+                return false
             }
             
-            // 未来时间排在过去时间前面
-            return diff1 >= 0
+            // If both future or both past, sort by closeness to now
+            return abs(diff1) < abs(diff2)
         }
     }
 }
 
 #Preview {
+    // Preview remains largely the same, just don't need temporary item logic
     do {
         let schema = Schema([
             Folder.self, Milestone.self
