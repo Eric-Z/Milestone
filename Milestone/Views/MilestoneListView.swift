@@ -36,7 +36,7 @@ struct MilestoneListView: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar { toolbarContent }
-        .onAppear(perform: filterAndSortMilestone)
+        .onAppear(perform: filterAndSort)
     }
     
     private var mainContentView: some View {
@@ -107,11 +107,22 @@ struct MilestoneListView: View {
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
-                            deleteMilestone(milestone)
+                            delete(milestone)
                         } label: {
                             Label("删除", systemImage: "trash")
                         }
                         .tint(.red)
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                        Button {
+                            milestone.pinned.toggle()
+                            withAnimation(.spring()) {
+                                filterAndSort()
+                            }
+                        } label: {
+                            Label("置顶", systemImage: milestone.pinned ? "pin.slash" : "pin")
+                        }
+                        .tint(.textHighlight1)
                     }
             }
         }
@@ -137,7 +148,7 @@ struct MilestoneListView: View {
     private var addEditOverlay: some View {
         MilestoneAddEditView(milestone: nil, folder: folder, onSave: {
             dismissAddEditView()
-            filterAndSortMilestone()
+            filterAndSort()
         })
         .padding(.horizontal, Distances.listPadding)
         .padding(.bottom, 120)
@@ -226,22 +237,22 @@ struct MilestoneListView: View {
     /**
      删除里程碑
      */
-    private func deleteMilestone(_ milestone: Milestone) {
+    private func delete(_ milestone: Milestone) {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
         modelContext.delete(milestone)
         try? modelContext.save()
         
-        filterAndSortMilestone()
+        filterAndSort()
     }
-
+    
     /**
      里程碑列表排序
      */
-    private func filterAndSortMilestone() {
+    private func filterAndSort() {
         filteredMilestone = milestones
-            .filter { $0.folderId == folder.id.uuidString }
+            .filter { $0.folderId == folder.id.uuidString || folder.id == Constants.FOLDER_ALL_UUID}
             .sorted { m1, m2 in
                 // Pinned items first
                 if m1.pinned != m2.pinned {

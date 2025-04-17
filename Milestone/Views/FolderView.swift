@@ -1,8 +1,11 @@
 import SwiftUI
+import SwiftData
 
 struct FolderView: View {
     
     @Environment(\.modelContext) private var modelContext
+    
+    @Query private var milestones: [Milestone]
     
     var folder: Folder
     var isEditMode = false
@@ -26,7 +29,7 @@ struct FolderView: View {
             Spacer()
             
             if !isEditMode {
-                Text("12")
+                Text("\(countFolderMilestone())")
                     .font(.system(size: FontSizes.bodyText, weight: .medium))
                     .foregroundStyle(.textNote)
                 
@@ -87,6 +90,16 @@ struct FolderView: View {
         .cornerRadius(21)
         .padding(.horizontal, 14)
         .frame(height: 50)
+    }
+    
+    /**
+     统计文件夹下的里程碑数量
+     */
+    private func countFolderMilestone() -> Int {
+        if (folder.id == Constants.FOLDER_ALL_UUID) {
+            return milestones.count;
+        }
+        return milestones.filter { $0.folderId == folder.id.uuidString }.count
     }
 }
 

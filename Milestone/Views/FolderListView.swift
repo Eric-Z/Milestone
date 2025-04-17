@@ -154,7 +154,9 @@ struct FolderListView: View {
         allFolders = []
         allFolders.insert(contentsOf: folders, at: 0)
         
+        // 添加全部里程碑文件夹
         let systemFolder = Folder(name: Constants.FOLDER_ALL, sortOrder: 0);
+        systemFolder.id = Constants.FOLDER_ALL_UUID
         systemFolder.isSystem = true
         allFolders.insert(systemFolder, at: 0)
     }
