@@ -98,6 +98,7 @@ struct FolderListView: View {
                             .listRowBackground(Color.clear)
                             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                     }
+                    .onMove(perform: moveItem)
                 }
                 .listStyle(.plain)
                 .navigationDestination(isPresented: Binding(
@@ -145,6 +146,35 @@ struct FolderListView: View {
         .onChange(of: folders) { oldValue, newValue in
             refreshFolders()
         }
+    }
+    
+    /**
+     移动文件夹项
+     */
+    func moveItem(from source: IndexSet, to destination: Int) {
+        // 阻止移动系统文件夹（索引0）
+        if source.contains(0) {
+            return
+        }
+        
+        // 如果目标位置是第一个系统文件夹，则移动到第二个位置
+        var adjustedDestination = destination
+        if destination == 0 {
+            adjustedDestination = 1
+        }
+        
+        // 更新内存中的数组
+        allFolders.move(fromOffsets: source, toOffset: adjustedDestination)
+        
+        // 更新文件夹排序号
+        for i in 1..<allFolders.count {
+            if !allFolders[i].isSystem {
+                allFolders[i].sortOrder = i
+            }
+        }
+        
+        // 保存到SwiftData
+        try? modelContext.save()
     }
     
     /**

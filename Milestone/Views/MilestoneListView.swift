@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import SwipeActions
 
 struct MilestoneListView: View {
     
