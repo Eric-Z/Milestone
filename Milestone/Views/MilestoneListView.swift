@@ -11,6 +11,9 @@ struct MilestoneListView: View {
     @State private var filteredMilestone: [Milestone] = []
     @State private var showAddEditView: Bool = false
     
+    // 获取自动显示添加视图的信号
+    @ObservedObject private var autoShowPublisher = AutoShowAddPublisher.shared
+    
     var folder: Folder
     
     var body: some View {
@@ -35,7 +38,18 @@ struct MilestoneListView: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar { toolbarContent }
-        .onAppear(perform: filterAndSort)
+        .onAppear {
+            filterAndSort()
+            
+            // 如果收到自动显示添加视图的信号，执行添加
+            if autoShowPublisher.shouldAutoShow {
+                // 延迟执行以确保视图已完全加载
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    presentAddEditView()
+                    autoShowPublisher.shouldAutoShow = false
+                }
+            }
+        }
     }
     
     private var mainContentView: some View {

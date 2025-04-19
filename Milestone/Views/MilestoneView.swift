@@ -37,13 +37,13 @@ struct MilestoneView: View {
                         .foregroundStyle(milestone.pinned ? .white : .textNote)
                 }
                 
-                let milestoneFolder = folders.first{ $0.id.uuidString == milestone.folderId }!
-                if folder.id == Constants.FOLDER_ALL_UUID && milestoneFolder.id != Constants.FOLDER_ALL_UUID {
+                let milestoneFolder = folders.first{ $0.id.uuidString == milestone.folderId }
+                if folder.id == Constants.FOLDER_ALL_UUID {
                     HStack(spacing: 0) {
                         Group {
                             Image(systemName: "folder")
                                 
-                            Text(milestoneFolder.name)
+                            Text(milestoneFolder?.name ?? Constants.FOLDER_ALL)
                                 .padding(.leading, Distances.itemGap)
                         }
                         .font(.system(size: FontSizes.noteText))

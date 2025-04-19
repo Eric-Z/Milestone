@@ -15,6 +15,9 @@ struct FolderListView: View {
     @State private var showEditFolder = false
     @State private var selectedFolder: Folder? = nil
     
+    // 用于将信息传递给MilestoneListView的单例
+    let autoShowAddPublisher = AutoShowAddPublisher.shared
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -127,7 +130,14 @@ struct FolderListView: View {
                     Spacer()
                     
                     Button {
-                        
+                        // 查找全部里程碑文件夹
+                        if let allMilestoneFolder = allFolders.first(where: { $0.id == Constants.FOLDER_ALL_UUID }) {
+                            // 设置信号，告知MilestoneListView应该自动打开添加视图
+                            autoShowAddPublisher.shouldAutoShow = true
+                            
+                            // 选择全部文件夹，触发导航
+                            selectedFolder = allMilestoneFolder
+                        }
                     } label: {
                         Image(systemName: "plus.circle")
                             .font(.system(size: FontSizes.bodyText))
@@ -202,6 +212,14 @@ struct FolderListView: View {
             }
         }
     }
+}
+
+// 用于在视图之间传递自动显示添加视图的信号
+class AutoShowAddPublisher: ObservableObject {
+    static let shared = AutoShowAddPublisher()
+    @Published var shouldAutoShow = false
+    
+    private init() {}
 }
 
 #Preview {
