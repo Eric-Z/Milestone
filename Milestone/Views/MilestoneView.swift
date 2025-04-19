@@ -4,7 +4,9 @@ import Foundation
 
 struct MilestoneView: View {
     
-    var folder: Folder?
+    @Query(sort: \Folder.sortOrder) private var folders: [Folder]
+    
+    var folder: Folder
     var milestone: Milestone
     
     var body: some View {
@@ -35,12 +37,13 @@ struct MilestoneView: View {
                         .foregroundStyle(milestone.pinned ? .white : .textNote)
                 }
                 
-                if let folderId = milestone.folderId, !folderId.isEmpty, let folderName = folder?.name {
+                let milestoneFolder = folders.first{ $0.id.uuidString == milestone.folderId }!
+                if folder.id == Constants.FOLDER_ALL_UUID && milestoneFolder.id != Constants.FOLDER_ALL_UUID {
                     HStack(spacing: 0) {
                         Group {
                             Image(systemName: "folder")
                                 
-                            Text(folderName)
+                            Text(milestoneFolder.name)
                                 .padding(.leading, Distances.itemGap)
                         }
                         .font(.system(size: FontSizes.noteText))
