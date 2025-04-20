@@ -10,6 +10,7 @@ struct MilestoneListView: View {
     
     @State private var filteredMilestone: [Milestone] = []
     @State private var showAddEditView: Bool = false
+    @State private var selectedMilestone: Milestone? = nil
     
     // 获取自动显示添加视图的信号
     @ObservedObject private var autoShowPublisher = AutoShowAddPublisher.shared
@@ -46,6 +47,7 @@ struct MilestoneListView: View {
                 // 延迟执行以确保视图已完全加载
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     presentAddEditView()
+                    // 重置标志，避免影响其他视图
                     autoShowPublisher.shouldAutoShow = false
                 }
             }
@@ -118,6 +120,11 @@ struct MilestoneListView: View {
                     .padding(.bottom, Distances.itemGap)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedMilestone = milestone
+                        presentEditView(milestone: milestone)
+                    }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
                             delete(milestone)
@@ -159,10 +166,14 @@ struct MilestoneListView: View {
      新增/更新里程碑弹框
      */
     private var addEditOverlay: some View {
-        MilestoneAddEditView(milestone: nil, folder: folder, onSave: {
-            dismissAddEditView()
-            filterAndSort()
-        })
+        MilestoneAddEditView(
+            milestone: selectedMilestone,
+            folder: folder,
+            onSave: {
+                dismissAddEditView()
+                filterAndSort()
+            }
+        )
         .padding(.horizontal, Distances.listPadding)
         .padding(.bottom, 120)
         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -175,6 +186,7 @@ struct MilestoneListView: View {
         VStack {
             Spacer()
             Button {
+                selectedMilestone = nil
                 presentAddEditView()
             } label: {
                 Image(systemName: "plus")
@@ -224,12 +236,26 @@ struct MilestoneListView: View {
     }
     
     /**
-     展示新增/更新里程碑弹窗
+     展示新增里程碑弹窗
      */
     private func presentAddEditView() {
         if !showAddEditView {
             // 收起键盘
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            withAnimation(.spring()) {
+                showAddEditView = true
+            }
+        }
+    }
+    
+    /**
+     展示编辑里程碑弹窗
+     */
+    private func presentEditView(milestone: Milestone) {
+        if !showAddEditView {
+            // 收起键盘
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            selectedMilestone = milestone
             withAnimation(.spring()) {
                 showAddEditView = true
             }
