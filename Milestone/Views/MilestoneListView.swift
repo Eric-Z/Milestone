@@ -45,7 +45,7 @@ struct MilestoneListView: View {
             // 如果收到自动显示添加视图的信号，执行添加
             if autoShowPublisher.shouldAutoShow {
                 // 延迟执行以确保视图已完全加载
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     presentAddEditView()
                     // 重置标志，避免影响其他视图
                     autoShowPublisher.shouldAutoShow = false
@@ -242,7 +242,7 @@ struct MilestoneListView: View {
         if !showAddEditView {
             // 收起键盘
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            withAnimation(.spring()) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
                 showAddEditView = true
             }
         }
