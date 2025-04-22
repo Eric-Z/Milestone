@@ -3,7 +3,8 @@ import SwiftData
 import Foundation
 
 struct MilestoneView: View {
-    
+
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \Folder.sortOrder) private var folders: [Folder]
     
     var onEditMode: Bool
@@ -18,11 +19,13 @@ struct MilestoneView: View {
             if onEditMode {
                 Button(action: {
                     milestone.isChecked.toggle()
+                    try? modelContext.save()
                 }) {
                     Image(systemName: milestone.isChecked ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(milestone.pinned ? .white : .textPlaceholderDisable)
+                        .foregroundStyle(milestone.pinned ? .white : milestone.isChecked ? .textHighlight1 : .textPlaceholderDisable)
                         .font(.system(size: FontSizes.bodyText))
                 }
+                .buttonStyle(.plain)
                 .padding(.trailing, Distances.itemPaddingH)
             }
             

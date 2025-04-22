@@ -37,6 +37,11 @@ struct MilestoneListView: View {
                 floatingActionButton
                     .zIndex(3)
             }
+            
+            if onEditMode && milestones.count >= 1 {
+                bottomToolbarView
+                    .zIndex(3)
+            }
         }
         .navigationBarBackButtonHidden(true)
         .toolbar { toolbarContent }
@@ -239,6 +244,77 @@ struct MilestoneListView: View {
                     .foregroundStyle(.textHighlight1)
             }
         }
+    }
+    
+    /**
+     底部菜单栏
+     */
+    private var bottomToolbarView: some View {
+        HStack(spacing: 0) {
+            let isAllChecked = filteredMilestone.allSatisfy { $0.isChecked }
+            let isAllNotChecked = filteredMilestone.allSatisfy { !$0.isChecked }
+            let operateAll = isAllChecked || isAllNotChecked
+            Button {
+            } label: {
+                if (operateAll) {
+                    Text("移动全部")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.textHighlight1)
+                } else {
+                    Text("移动")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.textHighlight1)
+                }
+            }
+            
+            Spacer()
+            
+            Button {
+                if operateAll {
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                    
+                    filteredMilestone.forEach { modelContext.delete($0) }
+                    try? modelContext.save()
+                    
+                    filterAndSort()
+                    
+                    // 退出编辑模式
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
+                        onEditMode = false
+                    }
+                } else {
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                    
+                    filteredMilestone.forEach {
+                        if $0.isChecked {
+                            modelContext.delete($0)
+                        }
+                    }
+                    try? modelContext.save()
+                    
+                    filterAndSort()
+                    
+                    // 退出编辑模式
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
+                        onEditMode = false
+                    }
+                }
+            } label: {
+                if (operateAll) {
+                    Text("全部删除")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.textHighlight1)
+                } else {
+                    Text("删除")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.textHighlight1)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
     }
     
     /**
