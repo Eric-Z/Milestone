@@ -2,162 +2,162 @@ import SwiftUI
 import SwiftData
 
 struct FolderListView: View {
-    
+    // MARK: - 属性
     @Query(sort: \Folder.sortOrder) private var folders: [Folder]
-    
     @Environment(\.modelContext) private var modelContext
     
     @State private var allFolders: [Folder] = []
     @State private var isEditMode = false
-    @State private var currentEditingFolder: Folder?
-    
+    @State private var editingFolder: Folder? = nil
     @State private var showAddFolder = false
-    @State private var showEditFolder = false
     @State private var selectedFolder: Folder? = nil
     
     // 用于将信息传递给MilestoneListView的单例
     let autoShowAddPublisher = AutoShowAddPublisher.shared
     
+    // MARK: - 视图构建
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // 编辑按钮
-                HStack(alignment: .center, spacing: 0) {
-                    Spacer()
-                    
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                            isEditMode.toggle()
-                        }
-                    } label: {
-                        Text(isEditMode ? "完成" : "编辑")
-                            .font(.system(size: FontSizes.bodyText, weight: .medium))
-                            .foregroundColor(.textHighlight1)
-                    }
-                }
-                .padding(.trailing, 16)
-                .padding(.vertical, 11)
-                
-                // 标题
-                VStack(spacing: 0) {
-                    Text("Milestone")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundColor(.textBody)
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
-                    
-                    HStack(alignment: .center, spacing: 5) {
-                        let folderSize = allFolders.count
-                        Text("\(folderSize)")
-                            .font(.system(size: FontSizes.largeNoteNumber, weight: .semibold, design: .rounded))
-                            .foregroundColor(.textNote)
-                        
-                        Text("个文件夹")
-                            .font(.system(size: FontSizes.largeNoteText, weight: .semibold))
-                            .foregroundColor(.textNote)
-                            .frame(maxWidth: .infinity, alignment: .topLeading)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 0)
-                .padding(.bottom, 12)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                
-                List {
-                    ForEach(allFolders) { folder in
-                        FolderView(folder: folder, isEditMode: isEditMode)
-                            .padding(0)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                if !isEditMode {
-                                    selectedFolder = folder
-                                }
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                if !folder.isSystem {
-                                    Button(role: .destructive) {
-                                        let generator = UINotificationFeedbackGenerator()
-                                        generator.notificationOccurred(.success)
-                                        deleteFolder(folder)
-                                    } label: {
-                                        Label("删除", systemImage: "trash")
-                                    }
-                                    .tint(.red)
-                                    
-                                    Button {
-                                        currentEditingFolder = folder
-                                        showEditFolder = true
-                                    } label: {
-                                        Label("编辑", systemImage: "square.and.pencil")
-                                    }
-                                    .tint(.purple6)
-                                }
-                            }
-                            .sheet(isPresented: $showEditFolder) {
-                                if let folderToEdit = currentEditingFolder {
-                                    FolderEditView(folder: folderToEdit)
-                                }
-                            }
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
-                    }
-                    .onMove(perform: moveItem)
-                }
-                .listStyle(.plain)
-                .navigationDestination(isPresented: Binding(
-                    get: { selectedFolder != nil },
-                    set: { if !$0 { selectedFolder = nil }}
-                )) {
-                    if let folder = selectedFolder {
-                        MilestoneListView(folder: folder)
-                    }
-                }
-                
-                // 底部按钮
-                HStack(spacing: 0) {
-                    Button {
-                        showAddFolder = true
-                    } label: {
-                        Image(systemName: "folder.badge.plus")
-                            .font(.system(size: FontSizes.bodyText))
-                            .imageScale(.large)
-                            .foregroundStyle(.textHighlight1)
-                    }
-                    .sheet(isPresented: $showAddFolder) {
-                        FolderAddView()
-                    }
-                    
-                    Spacer()
-                    
-                    Button {
-                        // 查找全部里程碑文件夹
-                        if let allMilestoneFolder = allFolders.first(where: { $0.id == Constants.FOLDER_ALL_UUID }) {
-                            // 设置信号，告知MilestoneListView应该自动打开添加视图
-                            autoShowAddPublisher.shouldAutoShow = true
-                            
-                            // 选择全部文件夹，触发导航
-                            selectedFolder = allMilestoneFolder
-                        }
-                    } label: {
-                        Image(systemName: "plus.circle")
-                            .font(.system(size: FontSizes.bodyText))
-                            .imageScale(.large)
-                            .foregroundStyle(.textHighlight1)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 11)
+                editButtonView
+                titleView
+                folderListView
+                bottomToolbarView
             }
         }
         .tint(.textHighlight1)
         .onAppear {
             refreshFolders()
         }
-        .onChange(of: folders) { oldValue, newValue in
+        .onChange(of: folders) { _, _ in
             refreshFolders()
         }
     }
     
+    // MARK: - 子视图
+    private var editButtonView: some View {
+        HStack(alignment: .center, spacing: 0) {
+            Spacer()
+            
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                    isEditMode.toggle()
+                }
+            } label: {
+                Text(isEditMode ? "完成" : "编辑")
+                    .font(.system(size: FontSizes.bodyText, weight: .medium))
+                    .foregroundColor(.textHighlight1)
+            }
+        }
+        .padding(.trailing, 16)
+        .padding(.vertical, 11)
+    }
+    
+    private var titleView: some View {
+        VStack(spacing: 0) {
+            Text("Milestone")
+                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .foregroundColor(.textBody)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+            
+            HStack(alignment: .center, spacing: 5) {
+                let folderSize = allFolders.count
+                Text("\(folderSize)")
+                    .font(.system(size: FontSizes.largeNoteNumber, weight: .semibold, design: .rounded))
+                    .foregroundColor(.textNote)
+                
+                Text("个文件夹")
+                    .font(.system(size: FontSizes.largeNoteText, weight: .semibold))
+                    .foregroundColor(.textNote)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 0)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+    }
+    
+    private var folderListView: some View {
+        List {
+            ForEach(allFolders) { folder in
+                FolderView(folder: folder, isEditMode: isEditMode)
+                    .padding(0)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if !isEditMode {
+                            selectedFolder = folder
+                        }
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        if !folder.isSystem {
+                            Button(role: .destructive) {
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.success)
+                                deleteFolder(folder)
+                            } label: {
+                                Label("删除", systemImage: "trash")
+                            }
+                            .tint(.red)
+                            
+                            Button {
+                                editingFolder = folder
+                            } label: {
+                                Label("编辑", systemImage: "square.and.pencil")
+                            }
+                            .tint(.purple6)
+                        }
+                    }
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+            }
+            .onMove(perform: moveItem)
+        }
+        .listStyle(.plain)
+        .navigationDestination(isPresented: Binding(
+            get: { selectedFolder != nil },
+            set: { if !$0 { selectedFolder = nil }}
+        )) {
+            if let folder = selectedFolder {
+                MilestoneListView(folder: folder)
+            }
+        }
+        .sheet(item: $editingFolder) { folderToEdit in
+            FolderEditView(folder: folderToEdit)
+        }
+    }
+    
+    private var bottomToolbarView: some View {
+        HStack(spacing: 0) {
+            Button {
+                showAddFolder = true
+            } label: {
+                Image(systemName: "folder.badge.plus")
+                    .font(.system(size: FontSizes.bodyText))
+                    .imageScale(.large)
+                    .foregroundStyle(.textHighlight1)
+            }
+            .sheet(isPresented: $showAddFolder) {
+                FolderAddView()
+            }
+            
+            Spacer()
+            
+            Button {
+                addMilestoneButtonTapped()
+            } label: {
+                Image(systemName: "plus.circle")
+                    .font(.system(size: FontSizes.bodyText))
+                    .imageScale(.large)
+                    .foregroundStyle(.textHighlight1)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
+    }
+    
+    // MARK: - 方法
     /**
      移动文件夹项
      */
@@ -177,6 +177,13 @@ struct FolderListView: View {
         allFolders.move(fromOffsets: source, toOffset: adjustedDestination)
         
         // 更新文件夹排序号
+        updateFolderSortOrder()
+    }
+    
+    /**
+     更新文件夹排序号
+     */
+    private func updateFolderSortOrder() {
         for i in 1..<allFolders.count {
             if !allFolders[i].isSystem {
                 allFolders[i].sortOrder = i
@@ -184,7 +191,7 @@ struct FolderListView: View {
         }
         
         // 保存到SwiftData
-        try? modelContext.save()
+        saveContext()
     }
     
     /**
@@ -195,7 +202,7 @@ struct FolderListView: View {
         allFolders.insert(contentsOf: folders, at: 0)
         
         // 添加全部里程碑文件夹
-        let systemFolder = Folder(name: Constants.FOLDER_ALL, sortOrder: 0);
+        let systemFolder = Folder(name: Constants.FOLDER_ALL, sortOrder: 0)
         systemFolder.id = Constants.FOLDER_ALL_UUID
         systemFolder.isSystem = true
         allFolders.insert(systemFolder, at: 0)
@@ -208,8 +215,33 @@ struct FolderListView: View {
         if allFolders.firstIndex(where: { $0.id == folder.id }) != nil {
             if !folder.isSystem {
                 modelContext.delete(folder)
-                try? modelContext.save()
+                saveContext()
             }
+        }
+    }
+    
+    /**
+     保存上下文
+     */
+    private func saveContext() {
+        do {
+            try modelContext.save()
+        } catch {
+            print("保存失败: \(error.localizedDescription)")
+        }
+    }
+    
+    /**
+     点击添加里程碑按钮
+     */
+    private func addMilestoneButtonTapped() {
+        // 查找全部里程碑文件夹
+        if let allMilestoneFolder = allFolders.first(where: { $0.id == Constants.FOLDER_ALL_UUID }) {
+            // 设置信号，告知MilestoneListView应该自动打开添加视图
+            autoShowAddPublisher.shouldAutoShow = true
+            
+            // 选择全部文件夹，触发导航
+            selectedFolder = allMilestoneFolder
         }
     }
 }
