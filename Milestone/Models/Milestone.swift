@@ -13,6 +13,7 @@ var id: UUID
     var deleteDate: Date?
     var deleted: Bool
     var isAddOrEdit: Bool
+    var isChecked: Bool
     
     init(id: UUID = UUID(), folderId: String?, title: String, remark: String, date: Date) {
         self.id = id
@@ -24,5 +25,6 @@ var id: UUID
         self.deleteDate = nil
         self.deleted = false
         self.isAddOrEdit = false
+        self.isChecked = false
     }
 } 

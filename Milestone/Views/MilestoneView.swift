@@ -6,6 +6,7 @@ struct MilestoneView: View {
     
     @Query(sort: \Folder.sortOrder) private var folders: [Folder]
     
+    var onEditMode: Bool
     var folder: Folder
     var milestone: Milestone
     
@@ -13,6 +14,18 @@ struct MilestoneView: View {
         let days = Calendar.current.dateComponents([.day], from: Date(), to: milestone.date).day ?? 0
         
         HStack(spacing: 0) {
+            
+            if onEditMode {
+                Button(action: {
+                    milestone.isChecked.toggle()
+                }) {
+                    Image(systemName: milestone.isChecked ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(milestone.pinned ? .white : .textPlaceholderDisable)
+                        .font(.system(size: FontSizes.bodyText))
+                }
+                .padding(.trailing, Distances.itemPaddingH)
+            }
+            
             VStack(alignment: .leading, spacing: 0) {
                 Group {
                     if days > 0 {
@@ -96,5 +109,5 @@ struct MilestoneView: View {
     let milestone = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
     milestone.pinned = true
     
-    return MilestoneView(folder: folder, milestone: milestone)
+    return MilestoneView(onEditMode: false, folder: folder, milestone: milestone)
 }

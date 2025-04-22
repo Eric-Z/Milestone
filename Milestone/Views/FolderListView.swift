@@ -257,7 +257,7 @@ class AutoShowAddPublisher: ObservableObject {
 #Preview {
     do {
         let schema = Schema([
-            Folder.self
+            Folder.self, Milestone.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
@@ -267,6 +267,17 @@ class AutoShowAddPublisher: ObservableObject {
         let folder2 = Folder(name: "旅游", sortOrder: 2)
         context.insert(folder1)
         context.insert(folder2)
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        let milestone1 = Milestone(folderId: folder2.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
+        milestone1.pinned = true
+        context.insert(milestone1)
+        
+        let milestone2 = Milestone(folderId: folder2.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
+        milestone2.pinned = false
+        context.insert(milestone2)
         
         return FolderListView().modelContainer(container)
     } catch {

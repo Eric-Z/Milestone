@@ -11,6 +11,7 @@ struct MilestoneListView: View {
     @State private var filteredMilestone: [Milestone] = []
     @State private var showAddEditView: Bool = false
     @State private var selectedMilestone: Milestone? = nil
+    @State private var onEditMode: Bool = false
     
     // 获取自动显示添加视图的信号
     @ObservedObject private var autoShowPublisher = AutoShowAddPublisher.shared
@@ -115,15 +116,17 @@ struct MilestoneListView: View {
     private var milestoneList: some View {
         List {
             ForEach(filteredMilestone) { milestone in
-                MilestoneView(folder: folder, milestone: milestone)
+                MilestoneView(onEditMode: onEditMode, folder: folder, milestone: milestone)
                     .padding(.horizontal, Distances.itemPaddingH)
                     .padding(.bottom, Distances.itemGap)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        selectedMilestone = milestone
-                        presentEditView(milestone: milestone)
+                        if !onEditMode {
+                            selectedMilestone = milestone
+                            presentEditView(milestone: milestone)
+                        }
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
@@ -227,6 +230,9 @@ struct MilestoneListView: View {
         
         ToolbarItem(placement: .navigationBarTrailing) {
             Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
+                    onEditMode.toggle()
+                }
             } label: {
                 Image(systemName: "ellipsis.circle")
                     .font(.system(size: 17))
