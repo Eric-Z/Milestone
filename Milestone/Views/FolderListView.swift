@@ -114,7 +114,6 @@ struct FolderListView: View {
                                 generator.notificationOccurred(.success)
                                 delete(folder)
                             }
-                            .allowSwipeToTrigger()
                             .onReceive(close) { _ in
                                 context.state.wrappedValue = .closed
                             }

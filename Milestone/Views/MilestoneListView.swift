@@ -258,42 +258,39 @@ struct MilestoneListView: View {
         } else {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 10) {
-                    Menu {
-                        Button(action: {
-                            showEditFolder = true
-                        }) {
-                            Label("重新命名", systemImage: "pencil")
-                        }
-                        .disabled(folder.isSystem)
-                        
-                        Button(action: {
+                    if (folder.isSystem) {
+                        Button {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                                onSelectMode = true
+                                onSelectMode.toggle()
+                                close.send()
                                 milestones.forEach { $0.isChecked = false }
                                 try? modelContext.save()
                             }
-                        }) {
-                            Label("选择里程碑", systemImage: "checkmark.circle")
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.system(size: 17))
+                                .foregroundStyle(.textHighlight1)
                         }
-                        
-                        Button(role: .destructive, action: {
-                        }) {
-                            Label("删除", systemImage: "trash")
-                        }
-                        .disabled(folder.isSystem)
-                    } label: {
-                        if onSelectMode {
-                            Button {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                                    onSelectMode.toggle()
-                                    close.send()
-                                }
-                            } label: {
-                                Text("完成")
-                                    .font(.system(size: FontSizes.bodyText, weight: .medium))
-                                    .foregroundColor(.textHighlight1)
+                    } else {
+                        Menu {
+                            Button(action: {
+                                showEditFolder = true
+                            }) {
+                                Label("重新命名", systemImage: "pencil")
                             }
-                        } else {
+                            .disabled(folder.isSystem)
+                            
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                                    onSelectMode = true
+                                    close.send()
+                                    milestones.forEach { $0.isChecked = false }
+                                    try? modelContext.save()
+                                }
+                            }) {
+                                Label("选择里程碑", systemImage: "checkmark.circle")
+                            }
+                        } label: {
                             Image(systemName: "ellipsis.circle")
                                 .font(.system(size: 17))
                                 .foregroundStyle(.textHighlight1)

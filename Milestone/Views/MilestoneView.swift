@@ -109,14 +109,17 @@ struct MilestoneView: View {
                 .foregroundStyle(milestone.pinned ? .white : .accentColor)
             }
         }
-        .onTapGesture {
-            milestone.isChecked.toggle()
-            try? modelContext.save()
-        }
         .padding(.horizontal, Distances.itemPaddingH)
         .padding(.vertical, Distances.itemPaddingV)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(milestone.pinned ? (days > 0 ? .textHighlight2 : .textHighlight1) : .areaItem)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if onSelectMode {
+                milestone.isChecked.toggle()
+                try? modelContext.save()
+            }
+        }
         .cornerRadius(21)
     }
     
