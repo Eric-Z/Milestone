@@ -165,6 +165,7 @@ struct MilestoneListView: View {
                     .padding(.bottom, Distances.itemGap)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                    .listRowBackground(Color.clear)
                 }
             }
         }

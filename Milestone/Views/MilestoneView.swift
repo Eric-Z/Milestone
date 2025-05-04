@@ -18,10 +18,12 @@ struct MilestoneView: View {
     
     // MARK: - 主视图
     var body: some View {
-        if !onEditMode { // 使用内部状态
+        if !onEditMode {
             viewMode
+                .transition(.scale(scale: 0.9, anchor: .center).combined(with: .opacity))
         } else {
             editMode
+                .transition(.scale(scale: 0.9, anchor: .center).combined(with: .opacity))
         }
     }
     
