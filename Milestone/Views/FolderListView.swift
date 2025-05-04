@@ -33,10 +33,10 @@ struct FolderListView: View {
         }
         .tint(.textHighlight1)
         .onAppear {
-            refreshFolders()
+            refresh()
         }
         .onChange(of: folders) { _, _ in
-            refreshFolders()
+            refresh()
         }
     }
     
@@ -112,7 +112,7 @@ struct FolderListView: View {
                             ) {
                                 let generator = UINotificationFeedbackGenerator()
                                 generator.notificationOccurred(.success)
-                                deleteFolder(folder)
+                                delete(folder)
                             }
                             .allowSwipeToTrigger()
                             .onReceive(close) { _ in
@@ -177,7 +177,7 @@ struct FolderListView: View {
     /**
      刷新文件夹列表
      */
-    private func refreshFolders() {
+    private func refresh() {
         allFolders = []
         allFolders.insert(contentsOf: folders, at: 0)
         
@@ -191,7 +191,7 @@ struct FolderListView: View {
     /**
      删除文件夹
      */
-    private func deleteFolder(_ folder: Folder) {
+    private func delete(_ folder: Folder) {
         if allFolders.firstIndex(where: { $0.id == folder.id }) != nil {
             if !folder.isSystem {
                 modelContext.delete(folder)

@@ -1,4 +1,6 @@
 import SwiftUI
+import Combine
+import SwipeActions
 import SwiftData
 
 struct MilestoneListView: View {
@@ -9,18 +11,23 @@ struct MilestoneListView: View {
     @Query private var milestones: [Milestone]
     
     @State private var filteredMilestone: [Milestone] = []
-    @State private var showAddEditView: Bool = false
     @State private var selectedMilestone: Milestone? = nil
+
+    @State private var showEditFolder: Bool = false
+    @State private var showAddEditView: Bool = false
     @State private var onEditMode: Bool = false
     
     // 获取自动显示添加视图的信号
     @ObservedObject private var autoShowPublisher = AutoShowAddPublisher.shared
     
+    @State var close = PassthroughSubject<Void, Never> ()
+    
     var folder: Folder
     
+    // MARK: - 主视图
     var body: some View {
         ZStack(alignment: .bottom) {
-            mainContentView
+            mainContent
                 .zIndex(0)
             
             if showAddEditView {
@@ -60,18 +67,17 @@ struct MilestoneListView: View {
         }
     }
     
-    private var mainContentView: some View {
+    // MARK: - 主视图
+    private var mainContent: some View {
         VStack(alignment: .leading, spacing: 0) {
-            headerView
-            listViewOrEmptyState
+            header
+            listOrEmpty
         }
     }
     
-    /**
-     标题
-     */
-    private var headerView: some View {
-        HStack(alignment: .center, spacing: 0) {
+    // MARK: - 标头
+    private var header: some View {
+        HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(folder.name)")
                     .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
@@ -81,7 +87,7 @@ struct MilestoneListView: View {
                         Text("暂无里程碑")
                             .font(.system(size: FontSizes.largeNoteText))
                     } else {
-                        HStack(spacing: 0) {
+                        HStack(spacing: 5) {
                             Text("\(filteredMilestone.count)")
                                 .font(.system(size: FontSizes.largeNoteNumber))
                             Text("个里程碑")
@@ -94,15 +100,12 @@ struct MilestoneListView: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.top, 0)
         .padding(.bottom, 12)
     }
     
-    /**
-     里程碑列表或空视图
-     */
+    // MARK: - 里程碑列表或空页面
     @ViewBuilder
-    private var listViewOrEmptyState: some View {
+    private var listOrEmpty: some View {
         if filteredMilestone.isEmpty {
             if !showAddEditView {
                 NoMilestoneView()
@@ -115,52 +118,55 @@ struct MilestoneListView: View {
         }
     }
     
-    /**
-     里程碑列表
-     */
+    // MARK: - 里程碑列表
     private var milestoneList: some View {
         List {
-            ForEach(filteredMilestone) { milestone in
-                MilestoneView(onEditMode: onEditMode, folder: folder, milestone: milestone)
-                    .padding(.horizontal, Distances.itemPaddingH)
-                    .padding(.bottom, Distances.itemGap)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if !onEditMode {
-                            selectedMilestone = milestone
-                            presentEditView(milestone: milestone)
-                        }
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            delete(milestone)
-                        } label: {
-                            Label("删除", systemImage: "trash")
-                        }
-                        .tint(.red)
-                    }
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button {
+            SwipeViewGroup {
+                ForEach(filteredMilestone) { milestone in
+                    SwipeView {
+                        MilestoneView(onEditMode: onEditMode, folder: folder, milestone: milestone)
+                            .onTapGesture {
+                                if !onEditMode {
+                                    selectedMilestone = milestone
+                                    presentEditView(milestone: milestone)
+                                }
+                            }
+                    } leadingActions: { context in
+                        SwipeAction(systemImage: milestone.pinned ? "pin.slash" : "pin", backgroundColor: .textHighlight1) {
                             milestone.pinned.toggle()
                             withAnimation(.spring()) {
                                 filterAndSort()
                             }
-                        } label: {
-                            Label("置顶", systemImage: milestone.pinned ? "pin.slash" : "pin")
                         }
-                        .tint(.textHighlight1)
+                        .allowSwipeToTrigger()
+                        .onReceive(close) { _ in
+                            context.state.wrappedValue = .closed
+                        }
+                        .foregroundStyle(.white)
+                    } trailingActions: { context in
+                        SwipeAction(systemImage: "trash", backgroundColor: .red) {
+                            delete(milestone)
+                        }
+                        .allowSwipeToTrigger()
+                        .onReceive(close) { _ in
+                            context.state.wrappedValue = .closed
+                        }
+                        .foregroundStyle(.white)
                     }
+                    .swipeActionCornerRadius(21)
+                    .swipeActionWidth(60)
+                    .padding(.horizontal, Distances.itemPaddingH)
+                    .padding(.bottom, Distances.itemGap)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
     }
     
-    /**
-     遮罩层
-     */
+    // MARK: - 遮罩层
     private var maskLayer: some View {
         Color.black.opacity(0.1)
             .ignoresSafeArea()
@@ -170,9 +176,7 @@ struct MilestoneListView: View {
             .transition(.opacity)
     }
     
-    /**
-     新增/更新里程碑弹框
-     */
+    // MARK: - 新增/更新里程碑弹框
     private var addEditOverlay: some View {
         MilestoneAddEditView(
             milestone: selectedMilestone,
@@ -187,9 +191,7 @@ struct MilestoneListView: View {
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
     
-    /**
-     新增里程碑按钮
-     */
+    // MARK: - 新增里程碑按钮
     private var floatingActionButton: some View {
         VStack {
             Spacer()
@@ -211,9 +213,7 @@ struct MilestoneListView: View {
         .transition(.opacity)
     }
     
-    /**
-     工具栏
-     */
+    // MARK: - 工具栏
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
@@ -234,21 +234,36 @@ struct MilestoneListView: View {
         }
         
         ToolbarItem(placement: .navigationBarTrailing) {
-            Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
-                    onEditMode.toggle()
+            HStack(spacing: 10) {
+                Menu {
+                    Button(action: {
+                        showEditFolder = true
+                    }) {
+                        Label("重新命名", systemImage: "pencil")
+                    }
+                    .sheet(isPresented: $showEditFolder) {
+                        FolderEditView(folder: folder)
+                    }
+                    
+                    Button(action: {
+                    }) {
+                        Label("选择里程碑", systemImage: "checkmark.circle")
+                    }
+                    
+                    Button(role: .destructive, action: {
+                    }) {
+                        Label("删除", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 17))
+                        .foregroundStyle(.textHighlight1)
                 }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .font(.system(size: 17))
-                    .foregroundStyle(.textHighlight1)
             }
         }
     }
-    
-    /**
-     底部菜单栏
-     */
+
+    // MARK: - 底部菜单栏
     private var bottomToolbarView: some View {
         HStack(spacing: 0) {
             let isAllChecked = filteredMilestone.allSatisfy { $0.isChecked }
