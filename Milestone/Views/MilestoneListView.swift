@@ -12,10 +12,11 @@ struct MilestoneListView: View {
     
     @State private var filteredMilestone: [Milestone] = []
     @State private var selectedMilestone: Milestone? = nil
-
+    
     @State private var showEditFolder: Bool = false
-    @State private var showAddEditView: Bool = false
-    @State private var onEditMode: Bool = false
+    
+    @State private var onAddEditMode: Bool = false
+    @State private var onSelectMode: Bool = false
     
     // 获取自动显示添加视图的信号
     @ObservedObject private var autoShowPublisher = AutoShowAddPublisher.shared
@@ -30,22 +31,22 @@ struct MilestoneListView: View {
             mainContent
                 .zIndex(0)
             
-            if showAddEditView {
+            if onAddEditMode {
                 maskLayer
                     .zIndex(1)
             }
             
-            if showAddEditView {
+            if onAddEditMode {
                 addEditOverlay
                     .zIndex(2)
             }
             
-            if !showAddEditView {
+            if !onAddEditMode {
                 floatingActionButton
                     .zIndex(3)
             }
             
-            if onEditMode && milestones.count >= 1 {
+            if onSelectMode && milestones.count >= 1 {
                 bottomToolbarView
                     .zIndex(3)
             }
@@ -59,11 +60,14 @@ struct MilestoneListView: View {
             if autoShowPublisher.shouldAutoShow {
                 // 延迟执行以确保视图已完全加载
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    presentAddEditView()
+                    add()
                     // 重置标志，避免影响其他视图
                     autoShowPublisher.shouldAutoShow = false
                 }
             }
+        }
+        .sheet(isPresented: $showEditFolder) {
+            FolderEditView(folder: folder)
         }
     }
     
@@ -107,7 +111,7 @@ struct MilestoneListView: View {
     @ViewBuilder
     private var listOrEmpty: some View {
         if filteredMilestone.isEmpty {
-            if !showAddEditView {
+            if !onAddEditMode {
                 NoMilestoneView()
                     .transition(.opacity)
             } else {
@@ -124,34 +128,38 @@ struct MilestoneListView: View {
             SwipeViewGroup {
                 ForEach(filteredMilestone) { milestone in
                     SwipeView {
-                        MilestoneView(onEditMode: onEditMode, folder: folder, milestone: milestone)
+                        MilestoneView(onSelectMode: onSelectMode, folder: folder, milestone: milestone)
                             .onTapGesture {
-                                if !onEditMode {
+                                if !onSelectMode {
                                     selectedMilestone = milestone
-                                    presentEditView(milestone: milestone)
+                                    edit(milestone: milestone)
                                 }
                             }
                     } leadingActions: { context in
-                        SwipeAction(systemImage: milestone.pinned ? "pin.slash" : "pin", backgroundColor: .textHighlight1) {
-                            milestone.pinned.toggle()
-                            withAnimation(.spring()) {
-                                filterAndSort()
+                        if !onSelectMode {
+                            SwipeAction(systemImage: milestone.pinned ? "pin.slash" : "pin", backgroundColor: .textHighlight1) {
+                                milestone.pinned.toggle()
+                                withAnimation(.spring()) {
+                                    filterAndSort()
+                                }
                             }
+                            .allowSwipeToTrigger()
+                            .onReceive(close) { _ in
+                                context.state.wrappedValue = .closed
+                            }
+                            .foregroundStyle(.white)
                         }
-                        .allowSwipeToTrigger()
-                        .onReceive(close) { _ in
-                            context.state.wrappedValue = .closed
-                        }
-                        .foregroundStyle(.white)
                     } trailingActions: { context in
-                        SwipeAction(systemImage: "trash", backgroundColor: .red) {
-                            delete(milestone)
+                        if !onSelectMode {
+                            SwipeAction(systemImage: "trash", backgroundColor: .red) {
+                                delete(milestone)
+                            }
+                            .allowSwipeToTrigger()
+                            .onReceive(close) { _ in
+                                context.state.wrappedValue = .closed
+                            }
+                            .foregroundStyle(.white)
                         }
-                        .allowSwipeToTrigger()
-                        .onReceive(close) { _ in
-                            context.state.wrappedValue = .closed
-                        }
-                        .foregroundStyle(.white)
                     }
                     .swipeActionCornerRadius(21)
                     .swipeActionWidth(60)
@@ -171,7 +179,8 @@ struct MilestoneListView: View {
         Color.black.opacity(0.1)
             .ignoresSafeArea()
             .onTapGesture {
-                dismissAddEditView()
+                selectedMilestone = nil
+                dismiss()
             }
             .transition(.opacity)
     }
@@ -182,7 +191,7 @@ struct MilestoneListView: View {
             milestone: selectedMilestone,
             folder: folder,
             onSave: {
-                dismissAddEditView()
+                dismiss()
                 filterAndSort()
             }
         )
@@ -197,7 +206,7 @@ struct MilestoneListView: View {
             Spacer()
             Button {
                 selectedMilestone = nil
-                presentAddEditView()
+                add()
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 24, weight: .medium))
@@ -233,36 +242,68 @@ struct MilestoneListView: View {
             }
         }
         
-        ToolbarItem(placement: .navigationBarTrailing) {
-            HStack(spacing: 10) {
-                Menu {
-                    Button(action: {
-                        showEditFolder = true
-                    }) {
-                        Label("重新命名", systemImage: "pencil")
-                    }
-                    .sheet(isPresented: $showEditFolder) {
-                        FolderEditView(folder: folder)
-                    }
-                    
-                    Button(action: {
-                    }) {
-                        Label("选择里程碑", systemImage: "checkmark.circle")
-                    }
-                    
-                    Button(role: .destructive, action: {
-                    }) {
-                        Label("删除", systemImage: "trash")
+        if onSelectMode {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                        onSelectMode.toggle()
+                        close.send()
                     }
                 } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.textHighlight1)
+                    Text("完成")
+                        .font(.system(size: FontSizes.bodyText, weight: .medium))
+                        .foregroundColor(.textHighlight1)
+                }
+            }
+        } else {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                HStack(spacing: 10) {
+                    Menu {
+                        Button(action: {
+                            showEditFolder = true
+                        }) {
+                            Label("重新命名", systemImage: "pencil")
+                        }
+                        .disabled(folder.isSystem)
+                        
+                        Button(action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                                onSelectMode = true
+                                milestones.forEach { $0.isChecked = false }
+                                try? modelContext.save()
+                            }
+                        }) {
+                            Label("选择里程碑", systemImage: "checkmark.circle")
+                        }
+                        
+                        Button(role: .destructive, action: {
+                        }) {
+                            Label("删除", systemImage: "trash")
+                        }
+                        .disabled(folder.isSystem)
+                    } label: {
+                        if onSelectMode {
+                            Button {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                                    onSelectMode.toggle()
+                                    close.send()
+                                }
+                            } label: {
+                                Text("完成")
+                                    .font(.system(size: FontSizes.bodyText, weight: .medium))
+                                    .foregroundColor(.textHighlight1)
+                            }
+                        } else {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.system(size: 17))
+                                .foregroundStyle(.textHighlight1)
+                        }
+                    }
                 }
             }
         }
     }
-
+    
     // MARK: - 底部菜单栏
     private var bottomToolbarView: some View {
         HStack(spacing: 0) {
@@ -296,7 +337,7 @@ struct MilestoneListView: View {
                     
                     // 退出编辑模式
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
-                        onEditMode = false
+                        onSelectMode = false
                     }
                 } else {
                     let generator = UINotificationFeedbackGenerator()
@@ -313,7 +354,7 @@ struct MilestoneListView: View {
                     
                     // 退出编辑模式
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
-                        onEditMode = false
+                        onSelectMode = false
                     }
                 }
             } label: {
@@ -332,15 +373,16 @@ struct MilestoneListView: View {
         .padding(.vertical, 11)
     }
     
+    // MARK: - 方法
     /**
      展示新增里程碑弹窗
      */
-    private func presentAddEditView() {
-        if !showAddEditView {
+    private func add() {
+        if !onAddEditMode {
             // 收起键盘
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
-                showAddEditView = true
+                onAddEditMode = true
             }
         }
     }
@@ -348,13 +390,13 @@ struct MilestoneListView: View {
     /**
      展示编辑里程碑弹窗
      */
-    private func presentEditView(milestone: Milestone) {
-        if !showAddEditView {
+    private func edit(milestone: Milestone) {
+        if !onAddEditMode {
             // 收起键盘
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             selectedMilestone = milestone
             withAnimation(.spring()) {
-                showAddEditView = true
+                onAddEditMode = true
             }
         }
     }
@@ -362,11 +404,11 @@ struct MilestoneListView: View {
     /**
      隐藏新增/更新里程碑弹窗
      */
-    private func dismissAddEditView() {
+    private func dismiss() {
         // 收起键盘
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         withAnimation(.spring()) {
-            showAddEditView = false
+            onAddEditMode = false
         }
     }
     

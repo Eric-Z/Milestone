@@ -3,20 +3,34 @@ import SwiftData
 import Foundation
 
 struct MilestoneView: View {
-
+    
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Folder.sortOrder) private var folders: [Folder]
+    @Query(sort: \Folder.name) private var folders: [Folder]
     
-    var onEditMode: Bool
-    var folder: Folder
-    var milestone: Milestone
+    let onSelectMode: Bool
+    let folder: Folder
+    @State var milestone: Milestone
+
+    @State private var onEditMode: Bool = false
+    @State private var showDatePicker: Bool = false
     
+    // MARK: - 主视图
     var body: some View {
+        if !onEditMode {
+            viewMode
+        } else {
+            editMode
+        }
+    }
+    
+    // MARK: - 只读
+    @ViewBuilder
+    private var viewMode: some View {
         let days = Calendar.current.dateComponents([.day], from: Date(), to: milestone.date).day ?? 0
         
         HStack(spacing: 0) {
             
-            if onEditMode {
+            if onSelectMode {
                 Button(action: {
                     milestone.isChecked.toggle()
                     try? modelContext.save()
@@ -58,7 +72,7 @@ struct MilestoneView: View {
                     HStack(spacing: 0) {
                         Group {
                             Image(systemName: "folder")
-                                
+                            
                             Text(milestoneFolder?.name ?? Constants.FOLDER_ALL)
                                 .padding(.leading, Distances.itemGap)
                         }
@@ -95,22 +109,114 @@ struct MilestoneView: View {
                 .foregroundStyle(milestone.pinned ? .white : .accentColor)
             }
         }
+        .onTapGesture {
+            milestone.isChecked.toggle()
+            try? modelContext.save()
+        }
         .padding(.horizontal, Distances.itemPaddingH)
         .padding(.vertical, Distances.itemPaddingV)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(milestone.pinned ? (days > 0 ? .textHighlight2 : .textHighlight1) : .areaItem)
         .cornerRadius(21)
     }
-}
-
-#Preview {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
     
-    let folder = Folder(name: "旅行", sortOrder: 1)
+    // MARK: - 编辑
+    @ViewBuilder
+    private var editMode: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 0) {
+                    TextField("里程碑", text: $milestone.title)
+                        .font(.system(size: FontSizes.bodyText, weight: .medium))
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        try? modelContext.save()
+                        
+                        
+                    }) {
+                        Text("完成")
+                            .font(.system(size: FontSizes.bodyText, weight: .semibold))
+                            .foregroundColor(milestone.title.isEmpty ? .textPlaceholderDisable : .textHighlight1)
+                    }
+                    .disabled(milestone.title.isEmpty)
+                }
+                
+                TextField("添加备注", text: $milestone.remark)
+                    .font(.system(size: 14))
+                    .foregroundColor(.textPlaceholderDisable)
+            }
+            .padding(.horizontal, Distances.itemPaddingH)
+            .padding(.vertical, Distances.itemPaddingV)
+            .frame(height: 72)
+            
+            Button {
+                // 收起键盘
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    showDatePicker.toggle()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 17))
+                        .imageScale(.large)
+                    
+                    Text(dateFormatter.string(from: milestone.date))
+                        .font(.system(size: 17))
+                }
+                .foregroundColor(.textHighlight1)
+                .padding(.horizontal, Distances.itemPaddingH)
+                .padding(.vertical, 11)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.areaItem)
+            }
+            .buttonStyle(.plain)
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(21)
+        .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 21)
+                .inset(by: 0.5)
+                .stroke(.areaBorder, lineWidth: 1)
+        )
+        
+        if showDatePicker {
+            VStack(spacing: 0) {
+                DatePicker("选择日期", selection: $milestone.date, displayedComponents: .date)
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .padding()
+                    .environment(\.locale, Locale(identifier: "zh_CN"))
+                    .environment(\.calendar, Calendar(identifier: .gregorian))
+                    .tint(.textHighlight1)
+                    .onChange(of: milestone.date) {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            showDatePicker = false
+                        }
+                    }
+            }
+            .frame(width: 320, height: 320)
+            .background(.areaBackgroundPopup)
+            .cornerRadius(21)
+            .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
+            .transition(
+                .scale(scale: 0.5)
+                .combined(with: .opacity)
+            )
+        }
+    }
     
-    let milestone = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
-    milestone.pinned = true
-    
-    return MilestoneView(onEditMode: false, folder: folder, milestone: milestone)
+    // MARK: - 方法
+    /**
+     添加日期格式化器
+     */
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter
+    }
 }

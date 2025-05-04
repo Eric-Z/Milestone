@@ -6,12 +6,10 @@ final class Folder: Identifiable {
     
     var id: UUID
     var name: String
-    var sortOrder: Int
     var isSystem: Bool = false
     
     init(name: String, sortOrder: Int) {
         self.id = UUID()
         self.name = name
-        self.sortOrder = sortOrder
     }
 }
