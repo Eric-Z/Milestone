@@ -88,7 +88,6 @@ struct FolderView: View {
         .padding(.vertical, 12)
         .background(.areaItem)
         .cornerRadius(21)
-        .padding(.horizontal, 14)
         .frame(height: 50)
     }
     

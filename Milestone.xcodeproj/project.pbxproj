@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		072CD7A42DC7403D0019DB14 /* SwipeActions in Frameworks */ = {isa = PBXBuildFile; productRef = 072CD7A32DC7403D0019DB14 /* SwipeActions */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		07F641712D4A251F00B75C59 /* Milestone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Milestone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				072CD7A42DC7403D0019DB14 /* SwipeActions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = Milestone;
 			packageProductDependencies = (
+				072CD7A32DC7403D0019DB14 /* SwipeActions */,
 			);
 			productName = Milestone;
 			productReference = 07F641712D4A251F00B75C59 /* Milestone.app */;
@@ -95,6 +101,7 @@
 			mainGroup = 07F641682D4A251F00B75C59;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				072CD7A22DC7403D0019DB14 /* XCRemoteSwiftPackageReference "SwipeActions" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 07F641722D4A251F00B75C59 /* Products */;
@@ -330,6 +337,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		072CD7A22DC7403D0019DB14 /* XCRemoteSwiftPackageReference "SwipeActions" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/aheze/SwipeActions";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		072CD7A32DC7403D0019DB14 /* SwipeActions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 072CD7A22DC7403D0019DB14 /* XCRemoteSwiftPackageReference "SwipeActions" */;
+			productName = SwipeActions;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 07F641692D4A251F00B75C59 /* Project object */;
 }
