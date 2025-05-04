@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import SwipeActions
+import Combine
 
 struct FolderListView: View {
     // MARK: - 属性
@@ -17,6 +18,8 @@ struct FolderListView: View {
     
     // 用于将信息传递给MilestoneListView的单例
     let autoShowAddPublisher = AutoShowAddPublisher.shared
+    
+    @State var close = PassthroughSubject<Void, Never> ()
     
     // MARK: - 主视图
     var body: some View {
@@ -45,6 +48,7 @@ struct FolderListView: View {
             Button {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
                     showEditMode.toggle()
+                    close.send()
                 }
             } label: {
                 Text(showEditMode ? "完成" : "编辑")
@@ -92,10 +96,13 @@ struct FolderListView: View {
                                     selectedFolder = folder
                                 }
                             }
-                    } trailingActions: { _ in
-                        if !folder.isSystem {
+                    } trailingActions: { context in
+                        if !folder.isSystem && !showEditMode {
                             SwipeAction(systemImage: "square.and.pencil", backgroundColor: .purple6) {
                                 editingFolder = folder
+                            }
+                            .onReceive(close) { _ in
+                                context.state.wrappedValue = .closed
                             }
                             .foregroundStyle(.white)
                             
@@ -108,6 +115,9 @@ struct FolderListView: View {
                                 deleteFolder(folder)
                             }
                             .allowSwipeToTrigger()
+                            .onReceive(close) { _ in
+                                context.state.wrappedValue = .closed
+                            }
                             .foregroundStyle(.white)
                         }
                     }
