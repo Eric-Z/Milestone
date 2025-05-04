@@ -13,6 +13,7 @@ struct FolderView: View {
     @State private var showEditFolder = false
     @State private var itemHeight: CGFloat = 50
     
+    // MARK: - 主视图
     var body: some View {
         // 主内容层
         HStack(alignment: .center, spacing: 10) {
@@ -61,18 +62,6 @@ struct FolderView: View {
                             .foregroundStyle(.textHighlight1)
                             .frame(width: 24, alignment: .center)
                     }
-                    
-                    Rectangle()
-                        .fill(.textNote.opacity(0.3))
-                        .frame(width: 1, height: 16)
-                        .padding(.horizontal, 2)
-                    
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: FontSizes.bodyText, weight: .medium))
-                        .imageScale(.large)
-                        .foregroundStyle(.textNote)
-                        .frame(width: 24, alignment: .center)
-                        .allowsHitTesting(false)
                 }
                 .transition(AnyTransition.asymmetric(
                     insertion: .move(edge: .trailing),
@@ -91,6 +80,7 @@ struct FolderView: View {
         .frame(height: 50)
     }
     
+    // MARK: -方法
     /**
      统计文件夹下的里程碑数量
      */

@@ -12,16 +12,7 @@ struct FolderAddView: View {
     @State private var showAlert = false
     @FocusState private var isFocused: Bool
     
-    /**
-     检查文件夹名称是否被占用
-     */
-    private func exists() -> Bool {
-        if folderName == Constants.FOLDER_ALL || folderName == Constants.FOLDER_DELETED {
-            return true
-        }
-        return folders.contains { $0.name.lowercased() == folderName.lowercased() }
-    }
-    
+    // MARK: - 主视图
     var body: some View {
         NavigationView {
             VStack {
@@ -76,6 +67,17 @@ struct FolderAddView: View {
             showAlert = false
             isFocused = true
         }
+    }
+    
+    // MARK: - 方法
+    /**
+     检查文件夹名称是否被占用
+     */
+    private func exists() -> Bool {
+        if folderName == Constants.FOLDER_ALL || folderName == Constants.FOLDER_DELETED {
+            return true
+        }
+        return folders.contains { $0.name.lowercased() == folderName.lowercased() }
     }
 }
 
