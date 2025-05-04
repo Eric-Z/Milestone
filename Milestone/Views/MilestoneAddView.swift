@@ -1,12 +1,11 @@
 import SwiftUI
 import SwiftData
 
-struct MilestoneAddEditView: View {
+struct MilestoneAddView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    var milestone: Milestone?
     var folder: Folder?
     
     @State private var title: String = ""
@@ -75,13 +74,6 @@ struct MilestoneAddEditView: View {
                 .inset(by: 0.5)
                 .stroke(.areaBorder, lineWidth: 1)
         )
-        .onAppear {
-            if let milestone = milestone {
-                self.title = milestone.title
-                self.remark = milestone.remark
-                self.date = milestone.date
-            }
-        }
         
         if showDatePicker {
             VStack(spacing: 0) {
@@ -113,30 +105,13 @@ struct MilestoneAddEditView: View {
      保存里程碑
      */
     private func saveMilestone() {
-        // 根据是否有milestone决定是更新还是新建
-        if let existingMilestone = milestone {
-            // 更新已有的里程碑
-            existingMilestone.title = title
-            existingMilestone.remark = remark
-            existingMilestone.date = date
-            
-            // 如果当前在"全部里程碑"文件夹中编辑，保持原来的文件夹ID
-            if folder?.id == Constants.FOLDER_ALL_UUID {
-                // 不修改folderId，保持原来的归属
-            } else if let folderId = folder?.id.uuidString {
-                // 如果在特定文件夹中编辑，则更新为当前文件夹
-                existingMilestone.folderId = folderId
-            }
-        } else {
-            // 创建新的里程碑
-            let newMilestone = Milestone(
-                folderId: folder?.id == Constants.FOLDER_ALL_UUID ? nil : folder?.id.uuidString,
-                title: title,
-                remark: remark,
-                date: date
-            )
-            modelContext.insert(newMilestone)
-        }
+        let newMilestone = Milestone(
+            folderId: folder?.id == Constants.FOLDER_ALL_UUID ? nil : folder?.id.uuidString,
+            title: title,
+            remark: remark,
+            date: date
+        )
+        modelContext.insert(newMilestone)
         
         // 保存更改
         try? modelContext.save()
@@ -157,5 +132,5 @@ struct MilestoneAddEditView: View {
 }
 
 #Preview {
-    MilestoneAddEditView()
+    MilestoneAddView()
 }

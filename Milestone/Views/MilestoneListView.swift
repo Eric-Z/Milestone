@@ -37,7 +37,7 @@ struct MilestoneListView: View {
             }
             
             if onAddMode {
-                addEditOverlay
+                addOverlay
                     .zIndex(2)
             }
             
@@ -184,9 +184,8 @@ struct MilestoneListView: View {
     }
     
     // MARK: - 新增/更新里程碑弹框
-    private var addEditOverlay: some View {
-        MilestoneAddEditView(
-            milestone: selectedMilestone,
+    private var addOverlay: some View {
+        MilestoneAddView(
             folder: folder,
             onSave: {
                 dismiss()
