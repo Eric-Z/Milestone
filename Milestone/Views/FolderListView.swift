@@ -101,6 +101,7 @@ struct FolderListView: View {
                             SwipeAction(systemImage: "square.and.pencil", backgroundColor: .purple6) {
                                 editingFolder = folder
                             }
+                            .swipeActionChangeLabelVisibilityOnly(true)
                             .onReceive(close) { _ in
                                 context.state.wrappedValue = .closed
                             }
@@ -114,6 +115,7 @@ struct FolderListView: View {
                                 generator.notificationOccurred(.success)
                                 delete(folder)
                             }
+                            .swipeActionChangeLabelVisibilityOnly(true)
                             .onReceive(close) { _ in
                                 context.state.wrappedValue = .closed
                             }

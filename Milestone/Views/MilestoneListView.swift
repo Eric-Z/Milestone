@@ -134,13 +134,15 @@ struct MilestoneListView: View {
                             milestone: milestone
                         )
                     } leadingActions: { context in
-                        if !onSelectMode {
+                        if !onSelectMode && !milestone.isEditing {
                             SwipeAction(systemImage: milestone.pinned ? "pin.slash" : "pin", backgroundColor: .textHighlight1) {
                                 milestone.pinned.toggle()
                                 withAnimation(.spring()) {
                                     filterAndSort()
                                 }
+                                close.send()
                             }
+                            .swipeActionChangeLabelVisibilityOnly(true)
                             .allowSwipeToTrigger()
                             .onReceive(close) { _ in
                                 context.state.wrappedValue = .closed
@@ -148,10 +150,12 @@ struct MilestoneListView: View {
                             .foregroundStyle(.white)
                         }
                     } trailingActions: { context in
-                        if !onSelectMode {
+                        if !onSelectMode && !milestone.isEditing {
                             SwipeAction(systemImage: "trash", backgroundColor: .red) {
                                 delete(milestone)
+                                close.send()
                             }
+                            .swipeActionChangeLabelVisibilityOnly(true)
                             .allowSwipeToTrigger()
                             .onReceive(close) { _ in
                                 context.state.wrappedValue = .closed

@@ -12,7 +12,7 @@ var id: UUID
     var pinned: Bool
     var deleteDate: Date?
     var deleted: Bool
-    var isAddOrEdit: Bool
+    var isEditing: Bool
     var isChecked: Bool
     
     init(id: UUID = UUID(), folderId: String?, title: String, remark: String, date: Date) {
@@ -24,7 +24,7 @@ var id: UUID
         self.pinned = false
         self.deleteDate = nil
         self.deleted = false
-        self.isAddOrEdit = false
+        self.isEditing = false
         self.isChecked = false
     }
 } 

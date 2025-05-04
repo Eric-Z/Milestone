@@ -6,19 +6,17 @@ struct MilestoneView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Folder.name) private var folders: [Folder]
+    @Query private var milestones: [Milestone]
     
-    // 输入属性
     let onSelectMode: Bool
     let folder: Folder
-    @State var milestone: Milestone // 保持 @State 以便修改 isChecked 等
-
-    // 内部状态
-    @State private var onEditMode: Bool = false 
+    
+    @State var milestone: Milestone
     @State private var showDatePicker: Bool = false
     
     // MARK: - 主视图
     var body: some View {
-        if !onEditMode {
+        if !milestone.isEditing {
             viewMode
                 .transition(.scale(scale: 0.9, anchor: .center).combined(with: .opacity))
         } else {
@@ -123,8 +121,13 @@ struct MilestoneView: View {
                 milestone.isChecked.toggle()
                 try? modelContext.save()
             } else {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                    onEditMode = true
+                if milestones.first(where: { $0.isEditing }) != nil  {
+                    
+                } else {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                        milestone.isEditing = true
+                        try? modelContext.save()
+                    }
                 }
             }
         }
@@ -145,7 +148,8 @@ struct MilestoneView: View {
                     Button(action: {
                         try? modelContext.save()
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                            onEditMode = false
+                            milestone.isEditing = false
+                            try? modelContext.save()
                         }
                     }) {
                         Text("完成")
@@ -261,7 +265,7 @@ struct MilestoneView: View {
         // 确保 Preview 调用与新的初始化器匹配
         return MilestoneView(
             onSelectMode: false,
-            folder: folder, 
+            folder: folder,
             milestone: milestone1,
         )
         .modelContainer(container)
