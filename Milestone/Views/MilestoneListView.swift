@@ -15,7 +15,7 @@ struct MilestoneListView: View {
     
     @State private var showEditFolder: Bool = false
     
-    @State private var onAddEditMode: Bool = false
+    @State private var onAddMode: Bool = false
     @State private var onSelectMode: Bool = false
     
     // 获取自动显示添加视图的信号
@@ -31,17 +31,17 @@ struct MilestoneListView: View {
             mainContent
                 .zIndex(0)
             
-            if onAddEditMode {
+            if onAddMode {
                 maskLayer
                     .zIndex(1)
             }
             
-            if onAddEditMode {
+            if onAddMode {
                 addEditOverlay
                     .zIndex(2)
             }
             
-            if !onAddEditMode {
+            if !onAddMode {
                 floatingActionButton
                     .zIndex(3)
             }
@@ -111,7 +111,7 @@ struct MilestoneListView: View {
     @ViewBuilder
     private var listOrEmpty: some View {
         if filteredMilestone.isEmpty {
-            if !onAddEditMode {
+            if !onAddMode {
                 NoMilestoneView()
                     .transition(.opacity)
             } else {
@@ -128,13 +128,11 @@ struct MilestoneListView: View {
             SwipeViewGroup {
                 ForEach(filteredMilestone) { milestone in
                     SwipeView {
-                        MilestoneView(onSelectMode: onSelectMode, folder: folder, milestone: milestone)
-                            .onTapGesture {
-                                if !onSelectMode {
-                                    selectedMilestone = milestone
-                                    edit(milestone: milestone)
-                                }
-                            }
+                        MilestoneView(
+                            onSelectMode: onSelectMode,
+                            folder: folder,
+                            milestone: milestone
+                        )
                     } leadingActions: { context in
                         if !onSelectMode {
                             SwipeAction(systemImage: milestone.pinned ? "pin.slash" : "pin", backgroundColor: .textHighlight1) {
@@ -375,25 +373,11 @@ struct MilestoneListView: View {
      展示新增里程碑弹窗
      */
     private func add() {
-        if !onAddEditMode {
+        if !onAddMode {
             // 收起键盘
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
-                onAddEditMode = true
-            }
-        }
-    }
-    
-    /**
-     展示编辑里程碑弹窗
-     */
-    private func edit(milestone: Milestone) {
-        if !onAddEditMode {
-            // 收起键盘
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            selectedMilestone = milestone
-            withAnimation(.spring()) {
-                onAddEditMode = true
+                onAddMode = true
             }
         }
     }
@@ -405,7 +389,7 @@ struct MilestoneListView: View {
         // 收起键盘
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         withAnimation(.spring()) {
-            onAddEditMode = false
+            onAddMode = false
         }
     }
     

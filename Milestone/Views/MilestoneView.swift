@@ -7,16 +7,18 @@ struct MilestoneView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Folder.name) private var folders: [Folder]
     
+    // 输入属性
     let onSelectMode: Bool
     let folder: Folder
-    @State var milestone: Milestone
+    @State var milestone: Milestone // 保持 @State 以便修改 isChecked 等
 
-    @State private var onEditMode: Bool = false
+    // 内部状态
+    @State private var onEditMode: Bool = false 
     @State private var showDatePicker: Bool = false
     
     // MARK: - 主视图
     var body: some View {
-        if !onEditMode {
+        if !onEditMode { // 使用内部状态
             viewMode
         } else {
             editMode
@@ -114,10 +116,14 @@ struct MilestoneView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(milestone.pinned ? (days > 0 ? .textHighlight2 : .textHighlight1) : .areaItem)
         .contentShape(Rectangle())
-        .onTapGesture {
+        .onTapGesture { // 修改这里的逻辑
             if onSelectMode {
                 milestone.isChecked.toggle()
                 try? modelContext.save()
+            } else {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                    onEditMode = true
+                }
             }
         }
         .cornerRadius(21)
@@ -136,8 +142,9 @@ struct MilestoneView: View {
                     
                     Button(action: {
                         try? modelContext.save()
-                        
-                        
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                            onEditMode = false
+                        }
                     }) {
                         Text("完成")
                             .font(.system(size: FontSizes.bodyText, weight: .semibold))
@@ -221,5 +228,42 @@ struct MilestoneView: View {
         formatter.dateFormat = "yyyy/MM/dd"
         formatter.locale = Locale(identifier: "zh_CN")
         return formatter
+    }
+}
+
+// 更新 Preview Provider 以包含 onTapToEdit
+#Preview {
+    do {
+        let schema = Schema([
+            Folder.self, Milestone.self
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+        let context = container.mainContext
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        let folder = Folder(name: "旅行", sortOrder: 1)
+        
+        let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
+        milestone1.pinned = true
+        
+        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
+        milestone2.pinned = false
+        
+        context.insert(folder)
+        context.insert(milestone1)
+        context.insert(milestone2)
+        
+        // 确保 Preview 调用与新的初始化器匹配
+        return MilestoneView(
+            onSelectMode: false,
+            folder: folder, 
+            milestone: milestone1,
+        )
+        .modelContainer(container)
+    } catch {
+        return Text("无法创建 ModelContainer")
     }
 }
