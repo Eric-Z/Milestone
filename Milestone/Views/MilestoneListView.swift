@@ -10,7 +10,7 @@ struct MilestoneListView: View {
     
     @Query private var milestones: [Milestone]
     
-    @State private var filteredMilestone: [Milestone] = []
+    @State private var filteredMilestones: [Milestone] = []
     @State private var selectedMilestone: Milestone? = nil
     
     @State private var showEditFolder: Bool = false
@@ -83,16 +83,23 @@ struct MilestoneListView: View {
     private var header: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(folder.name)")
-                    .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
+                let selectedMilestoneCount = filteredMilestones.count(where: { $0.isChecked })
+                
+                if onSelectMode && selectedMilestoneCount > 0 {
+                    Text("已选定\(selectedMilestoneCount)项")
+                        .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
+                } else {
+                    Text("\(folder.name)")
+                        .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
+                }
                 
                 Group {
-                    if filteredMilestone.isEmpty {
+                    if filteredMilestones.isEmpty {
                         Text("暂无里程碑")
                             .font(.system(size: FontSizes.largeNoteText))
                     } else {
                         HStack(spacing: 5) {
-                            Text("\(filteredMilestone.count)")
+                            Text("\(filteredMilestones.count)")
                                 .font(.system(size: FontSizes.largeNoteNumber))
                             Text("个里程碑")
                                 .font(.system(size: FontSizes.largeNoteText))
@@ -110,7 +117,7 @@ struct MilestoneListView: View {
     // MARK: - 里程碑列表或空页面
     @ViewBuilder
     private var listOrEmpty: some View {
-        if filteredMilestone.isEmpty {
+        if filteredMilestones.isEmpty {
             if !onAddMode {
                 NoMilestoneView()
                     .transition(.opacity)
@@ -126,7 +133,7 @@ struct MilestoneListView: View {
     private var milestoneList: some View {
         List {
             SwipeViewGroup {
-                ForEach(filteredMilestone) { milestone in
+                ForEach(filteredMilestones) { milestone in
                     SwipeView {
                         MilestoneView(
                             onSelectMode: onSelectMode,
@@ -291,7 +298,7 @@ struct MilestoneListView: View {
                             }) {
                                 Label("选择里程碑", systemImage: "checkmark.circle")
                             }
-                            .disabled(filteredMilestone.isEmpty)
+                            .disabled(filteredMilestones.isEmpty)
                         } label: {
                             Image(systemName: "ellipsis.circle")
                                 .font(.system(size: 17))
@@ -306,8 +313,8 @@ struct MilestoneListView: View {
     // MARK: - 底部菜单栏
     private var bottomToolbarView: some View {
         HStack(spacing: 0) {
-            let isAllChecked = filteredMilestone.allSatisfy { $0.isChecked }
-            let isAllNotChecked = filteredMilestone.allSatisfy { !$0.isChecked }
+            let isAllChecked = filteredMilestones.allSatisfy { $0.isChecked }
+            let isAllNotChecked = filteredMilestones.allSatisfy { !$0.isChecked }
             let operateAll = isAllChecked || isAllNotChecked
             Button {
             } label: {
@@ -330,13 +337,13 @@ struct MilestoneListView: View {
                     generator.notificationOccurred(.success)
                     
                     if folder.id != Constants.FOLDER_DELETED_UUID {
-                        filteredMilestone.forEach {
+                        filteredMilestones.forEach {
                             $0.folderId = Constants.FOLDER_DELETED_UUID.uuidString
                             $0.deleteDate = Date()
                         }
                         try? modelContext.save()
                     } else {
-                        filteredMilestone.forEach { modelContext.delete($0) }
+                        filteredMilestones.forEach { modelContext.delete($0) }
                         try? modelContext.save()
                     }
                     
@@ -352,7 +359,7 @@ struct MilestoneListView: View {
                     
                     
                     if folder.id != Constants.FOLDER_DELETED_UUID {
-                        filteredMilestone.forEach {
+                        filteredMilestones.forEach {
                             if $0.isChecked {
                                 $0.folderId = Constants.FOLDER_DELETED_UUID.uuidString
                                 $0.deleteDate = Date()
@@ -360,7 +367,7 @@ struct MilestoneListView: View {
                         }
                         try? modelContext.save()
                     } else {
-                        filteredMilestone.forEach {
+                        filteredMilestones.forEach {
                             if $0.isChecked {
                                 modelContext.delete($0)
                             }
@@ -440,15 +447,15 @@ struct MilestoneListView: View {
      */
     private func filterAndSort() {
         if folder.id == Constants.FOLDER_DELETED_UUID {
-            filteredMilestone = milestones
+            filteredMilestones = milestones
                 .filter { $0.deleteDate != nil }
         } else {
-            filteredMilestone = milestones
+            filteredMilestones = milestones
                 .filter { $0.deleteDate == nil }
                 .filter { $0.folderId == folder.id.uuidString || folder.id == Constants.FOLDER_ALL_UUID}
         }
         
-        filteredMilestone = filteredMilestone
+        filteredMilestones = filteredMilestones
             .sorted { m1, m2 in
                 // Pinned items first
                 if m1.isPinned != m2.isPinned {
