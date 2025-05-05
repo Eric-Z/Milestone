@@ -188,7 +188,7 @@ struct MilestoneListView: View {
             .transition(.opacity)
     }
     
-    // MARK: - 新增/更新里程碑弹框
+    // MARK: - 新增里程碑弹框
     private var addOverlay: some View {
         MilestoneAddView(
             folder: folder,

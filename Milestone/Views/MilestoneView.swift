@@ -18,10 +18,10 @@ struct MilestoneView: View {
     var body: some View {
         if !milestone.isEditing {
             viewMode
-                .transition(.scale(scale: 0.9, anchor: .center).combined(with: .opacity))
+                .transition(.scale(scale: 0.8, anchor: .center).combined(with: .opacity))
         } else {
             editMode
-                .transition(.scale(scale: 0.9, anchor: .center).combined(with: .opacity))
+                .transition(.scale(scale: 0.8, anchor: .center).combined(with: .opacity))
         }
     }
     
