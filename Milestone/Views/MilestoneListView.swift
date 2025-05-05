@@ -135,8 +135,8 @@ struct MilestoneListView: View {
                         )
                     } leadingActions: { context in
                         if !onSelectMode && !milestone.isEditing {
-                            SwipeAction(systemImage: milestone.pinned ? "pin.slash" : "pin", backgroundColor: .textHighlight1) {
-                                milestone.pinned.toggle()
+                            SwipeAction(systemImage: milestone.isPinned ? "pin.slash" : "pin", backgroundColor: .textHighlight1) {
+                                milestone.isPinned.toggle()
                                 withAnimation(.spring()) {
                                     filterAndSort()
                                 }
@@ -216,7 +216,6 @@ struct MilestoneListView: View {
                     .frame(width: 54, height: 54)
                     .background(Color.textHighlight1)
                     .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                     .padding(.bottom,  50)
             }
         }
@@ -329,8 +328,16 @@ struct MilestoneListView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
                     
-                    filteredMilestone.forEach { modelContext.delete($0) }
-                    try? modelContext.save()
+                    if folder.id != Constants.FOLDER_DELETED_UUID {
+                        filteredMilestone.forEach {
+                            $0.folderId = Constants.FOLDER_DELETED_UUID.uuidString
+                            $0.deleteDate = Date()
+                        }
+                        try? modelContext.save()
+                    } else {
+                        filteredMilestone.forEach { modelContext.delete($0) }
+                        try? modelContext.save()
+                    }
                     
                     filterAndSort()
                     
@@ -342,12 +349,23 @@ struct MilestoneListView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
                     
-                    filteredMilestone.forEach {
-                        if $0.isChecked {
-                            modelContext.delete($0)
+                    
+                    if folder.id != Constants.FOLDER_DELETED_UUID {
+                        filteredMilestone.forEach {
+                            if $0.isChecked {
+                                $0.folderId = Constants.FOLDER_DELETED_UUID.uuidString
+                                $0.deleteDate = Date()
+                            }
                         }
+                        try? modelContext.save()
+                    } else {
+                        filteredMilestone.forEach {
+                            if $0.isChecked {
+                                modelContext.delete($0)
+                            }
+                        }
+                        try? modelContext.save()
                     }
-                    try? modelContext.save()
                     
                     filterAndSort()
                     
@@ -404,8 +422,14 @@ struct MilestoneListView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        modelContext.delete(milestone)
-        try? modelContext.save()
+        if folder.id != Constants.FOLDER_DELETED_UUID {
+            milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
+            milestone.deleteDate = Date()
+            try? modelContext.save()
+        } else {
+            modelContext.delete(milestone)
+            try? modelContext.save()
+        }
         
         filterAndSort()
     }
@@ -414,12 +438,20 @@ struct MilestoneListView: View {
      里程碑列表排序
      */
     private func filterAndSort() {
-        filteredMilestone = milestones
-            .filter { $0.folderId == folder.id.uuidString || folder.id == Constants.FOLDER_ALL_UUID}
+        if folder.id == Constants.FOLDER_DELETED_UUID {
+            filteredMilestone = milestones
+                .filter { $0.deleteDate != nil }
+        } else {
+            filteredMilestone = milestones
+                .filter { $0.deleteDate == nil }
+                .filter { $0.folderId == folder.id.uuidString || folder.id == Constants.FOLDER_ALL_UUID}
+        }
+        
+        filteredMilestone = filteredMilestone
             .sorted { m1, m2 in
                 // Pinned items first
-                if m1.pinned != m2.pinned {
-                    return m1.pinned
+                if m1.isPinned != m2.isPinned {
+                    return m1.isPinned
                 }
                 
                 // Then sort by date proximity
@@ -449,13 +481,13 @@ struct MilestoneListView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         
-        let folder = Folder(name: "旅行", sortOrder: 1)
+        let folder = Folder(name: "旅行")
         
         let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
-        milestone1.pinned = true
+        milestone1.isPinned = true
         
         let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
-        milestone2.pinned = false
+        milestone2.isPinned = false
         
         context.insert(folder)
         context.insert(milestone1)

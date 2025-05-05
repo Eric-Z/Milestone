@@ -38,7 +38,7 @@ struct MilestoneView: View {
                     try? modelContext.save()
                 }) {
                     Image(systemName: milestone.isChecked ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(milestone.pinned ? .white : milestone.isChecked ? .textHighlight1 : .textPlaceholderDisable)
+                        .foregroundStyle(milestone.isPinned ? .white : milestone.isChecked ? .textHighlight1 : .textPlaceholderDisable)
                         .font(.system(size: FontSizes.bodyText))
                 }
                 .buttonStyle(.plain)
@@ -55,18 +55,18 @@ struct MilestoneView: View {
                         HStack(spacing: 0) {
                             Text("\(milestone.title)")
                             Text("就是今天！")
-                                .foregroundStyle(milestone.pinned ? .white : .textHighlight1)
+                                .foregroundStyle(milestone.isPinned ? .white : .textHighlight1)
                         }
                     }
                 }
                 .font(.system(size: FontSizes.bodyText, weight: .semibold))
-                .foregroundStyle(milestone.pinned ? .white : .accent)
+                .foregroundStyle(milestone.isPinned ? .white : .accent)
                 
                 if !milestone.remark.isEmpty {
                     Text("\(milestone.remark)")
                         .font(.system(size: FontSizes.noteText))
                         .padding(.top, Distances.itemGap)
-                        .foregroundStyle(milestone.pinned ? .white : .textNote)
+                        .foregroundStyle(milestone.isPinned ? .white : .textNote)
                 }
                 
                 let milestoneFolder = folders.first{ $0.id.uuidString == milestone.folderId }
@@ -79,7 +79,7 @@ struct MilestoneView: View {
                                 .padding(.leading, Distances.itemGap)
                         }
                         .font(.system(size: FontSizes.noteText))
-                        .foregroundStyle(milestone.pinned ? .white : .textNote)
+                        .foregroundStyle(milestone.isPinned ? .white : .textNote)
                         .padding(.top, Distances.itemGap)
                     }
                 }
@@ -95,26 +95,26 @@ struct MilestoneView: View {
                             Text("天")
                                 .padding(.leading, Distances.itemGap)
                         }
-                        .foregroundStyle(milestone.pinned ? .white : .textHighlight2)
+                        .foregroundStyle(milestone.isPinned ? .white : .textHighlight2)
                     } else if days < 0 {
                         Group {
                             Text("\(-days)")
                             Text("天")
                                 .padding(.leading, Distances.itemGap)
                         }
-                        .foregroundStyle(milestone.pinned ? .white : .textHighlight1)
+                        .foregroundStyle(milestone.isPinned ? .white : .textHighlight1)
                     } else {
                         Text("🎉")
                     }
                 }
                 .font(.system(size: FontSizes.bodyNumber, weight: .semibold, design: .rounded))
-                .foregroundStyle(milestone.pinned ? .white : .accentColor)
+                .foregroundStyle(milestone.isPinned ? .white : .accentColor)
             }
         }
         .padding(.horizontal, Distances.itemPaddingH)
         .padding(.vertical, Distances.itemPaddingV)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(milestone.pinned ? (days > 0 ? .textHighlight2 : .textHighlight1) : .areaItem)
+        .background(milestone.isPinned ? (days > 0 ? .textHighlight2 : .textHighlight1) : .areaItem)
         .contentShape(Rectangle())
         .onTapGesture { // 修改这里的逻辑
             if onSelectMode {
@@ -250,13 +250,13 @@ struct MilestoneView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         
-        let folder = Folder(name: "旅行", sortOrder: 1)
+        let folder = Folder(name: "旅行")
         
         let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
-        milestone1.pinned = true
+        milestone1.isPinned = true
         
         let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
-        milestone2.pinned = false
+        milestone2.isPinned = false
         
         context.insert(folder)
         context.insert(milestone1)

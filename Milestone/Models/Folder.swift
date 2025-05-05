@@ -8,7 +8,7 @@ final class Folder: Identifiable {
     var name: String
     var isSystem: Bool = false
     
-    init(name: String, sortOrder: Int) {
+    init(name: String) {
         self.id = UUID()
         self.name = name
     }

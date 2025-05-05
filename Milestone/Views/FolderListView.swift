@@ -6,6 +6,8 @@ import Combine
 struct FolderListView: View {
     // MARK: - 属性
     @Query(sort: \Folder.name) private var folders: [Folder]
+    @Query private var milestones: [Milestone]
+    
     @Environment(\.modelContext) private var modelContext
     
     @State private var allFolders: [Folder] = []
@@ -36,6 +38,9 @@ struct FolderListView: View {
             refresh()
         }
         .onChange(of: folders) { _, _ in
+            refresh()
+        }
+        .onChange(of: milestones) { _, _ in
             refresh()
         }
     }
@@ -133,7 +138,10 @@ struct FolderListView: View {
         .listStyle(.plain)
         .navigationDestination(isPresented: Binding(
             get: { selectedFolder != nil },
-            set: { if !$0 { selectedFolder = nil }}
+            set: {
+                if !$0 { selectedFolder = nil }
+                refresh()
+            }
         )) {
             if let folder = selectedFolder {
                 MilestoneListView(folder: folder)
@@ -183,10 +191,18 @@ struct FolderListView: View {
         allFolders.insert(contentsOf: folders, at: 0)
         
         // 添加全部里程碑文件夹
-        let systemFolder = Folder(name: Constants.FOLDER_ALL, sortOrder: 0)
+        let systemFolder = Folder(name: Constants.FOLDER_ALL)
         systemFolder.id = Constants.FOLDER_ALL_UUID
         systemFolder.isSystem = true
         allFolders.insert(systemFolder, at: 0)
+        
+        // 添加最近删除文件夹
+        if milestones.first(where: { $0.deleteDate != nil }) != nil {
+            let latestDeleteFolder = Folder(name: Constants.FOLDER_DELETED)
+            latestDeleteFolder.id = Constants.FOLDER_DELETED_UUID
+            latestDeleteFolder.isSystem = true
+            allFolders.insert(latestDeleteFolder, at: allFolders.count)
+        }
     }
     
     /**
@@ -195,8 +211,16 @@ struct FolderListView: View {
     private func delete(_ folder: Folder) {
         if allFolders.firstIndex(where: { $0.id == folder.id }) != nil {
             if !folder.isSystem {
+                for milestone in milestones {
+                    if milestone.folderId == folder.id.uuidString {
+                        milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
+                        milestone.deleteDate = Date()
+                    }
+                }
                 modelContext.delete(folder)
+
                 saveContext()
+                refresh()
             }
         }
     }
@@ -244,8 +268,8 @@ class AutoShowAddPublisher: ObservableObject {
         let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         let context = container.mainContext
         
-        let folder1 = Folder(name: "生日", sortOrder: 1)
-        let folder2 = Folder(name: "旅游", sortOrder: 2)
+        let folder1 = Folder(name: "生日")
+        let folder2 = Folder(name: "旅游")
         context.insert(folder1)
         context.insert(folder2)
         
@@ -253,11 +277,11 @@ class AutoShowAddPublisher: ObservableObject {
         formatter.dateFormat = "yyyy-MM-dd"
         
         let milestone1 = Milestone(folderId: folder2.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
-        milestone1.pinned = true
+        milestone1.isPinned = true
         context.insert(milestone1)
         
         let milestone2 = Milestone(folderId: folder2.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
-        milestone2.pinned = false
+        milestone2.isPinned = false
         context.insert(milestone2)
         
         return FolderListView().modelContainer(container)

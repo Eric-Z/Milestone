@@ -33,7 +33,7 @@ struct FolderAddView: View {
                         if exists() {
                             showAlert = true
                         } else {
-                            let folder = Folder(name: folderName, sortOrder: folders.count + 1)
+                            let folder = Folder(name: folderName)
                             modelContext.insert(folder)
                             try? modelContext.save()
                             dismiss()

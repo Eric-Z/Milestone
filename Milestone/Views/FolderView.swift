@@ -86,13 +86,16 @@ struct FolderView: View {
      */
     private func countFolderMilestone() -> Int {
         if (folder.id == Constants.FOLDER_ALL_UUID) {
-            return milestones.count;
+            return milestones.filter { $0.deleteDate == nil }.count
+        }
+        if (folder.id == Constants.FOLDER_DELETED_UUID) {
+            return milestones.filter { $0.deleteDate != nil }.count
         }
         return milestones.filter { $0.folderId == folder.id.uuidString }.count
     }
 }
 
 #Preview {
-    let folder = Folder(name: "全部里程碑", sortOrder:  1)
+    let folder = Folder(name: "全部里程碑")
     FolderView(folder: folder)
 }

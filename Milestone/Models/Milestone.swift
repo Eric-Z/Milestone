@@ -4,14 +4,13 @@ import SwiftData
 @Model
 final class Milestone: Identifiable {
     
-var id: UUID
+    var id: UUID
     var folderId: String?
     var title: String
     var remark: String
     var date: Date
-    var pinned: Bool
     var deleteDate: Date?
-    var deleted: Bool
+    var isPinned: Bool
     var isEditing: Bool
     var isChecked: Bool
     
@@ -21,9 +20,8 @@ var id: UUID
         self.title = title
         self.remark = remark
         self.date = date
-        self.pinned = false
+        self.isPinned = false
         self.deleteDate = nil
-        self.deleted = false
         self.isEditing = false
         self.isChecked = false
     }

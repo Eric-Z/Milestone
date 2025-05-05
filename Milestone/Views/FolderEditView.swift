@@ -89,8 +89,8 @@ struct FolderEditView: View {
         let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         let context = container.mainContext
         
-        let folder1 = Folder(name: "生日", sortOrder: 1)
-        let folder2 = Folder(name: "旅游", sortOrder: 2)
+        let folder1 = Folder(name: "生日")
+        let folder2 = Folder(name: "旅游")
         context.insert(folder1)
         context.insert(folder2)
         
