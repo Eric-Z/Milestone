@@ -291,6 +291,7 @@ struct MilestoneListView: View {
                             }) {
                                 Label("选择里程碑", systemImage: "checkmark.circle")
                             }
+                            .disabled(filteredMilestone.isEmpty)
                         } label: {
                             Image(systemName: "ellipsis.circle")
                                 .font(.system(size: 17))
