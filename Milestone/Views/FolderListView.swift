@@ -147,7 +147,9 @@ struct FolderListView: View {
                 MilestoneListView(folder: folder)
             }
         }
-        .sheet(item: $editingFolder) { folderToEdit in
+        .sheet(item: $editingFolder, onDismiss: {
+            close.send()
+        }) { folderToEdit in
             FolderEditView(folder: folderToEdit)
         }
     }

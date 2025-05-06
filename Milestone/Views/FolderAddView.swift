@@ -14,53 +14,51 @@ struct FolderAddView: View {
     
     // MARK: - 主视图
     var body: some View {
-        NavigationView {
-            VStack {
-                HStack {
-                    Button("取消") {
-                        dismiss()
-                    }
-                    .foregroundStyle(.textHighlight1)
-                    
-                    Spacer()
-                    
-                    Text("新建文件夹")
-                        .font(.system(size: FontSizes.bodyText, weight: .semibold))
-                    
-                    Spacer()
-                    
-                    Button("完成") {
-                        if exists() {
-                            showAlert = true
-                        } else {
-                            let folder = Folder(name: folderName)
-                            modelContext.insert(folder)
-                            try? modelContext.save()
-                            dismiss()
-                        }
-                    }
-                    .foregroundStyle(.textHighlight1)
-                    .disabled(folderName.isEmpty)
+        VStack {
+            HStack {
+                Button("取消") {
+                    dismiss()
                 }
-                .padding()
-                
-                TextField("名称", text: $folderName)
-                    .frame(height: 24)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, Distances.itemPaddingH)
-                    .background(.areaItem)
-                    .cornerRadius(21)
-                    .padding(.horizontal)
-                    .focused($isFocused)
-                    .font(.system(size: FontSizes.bodyText))
+                .foregroundStyle(.textHighlight1)
                 
                 Spacer()
+                
+                Text("新建文件夹")
+                    .font(.system(size: FontSizes.bodyText, weight: .semibold))
+                
+                Spacer()
+                
+                Button("完成") {
+                    if exists() {
+                        showAlert = true
+                    } else {
+                        let folder = Folder(name: folderName)
+                        modelContext.insert(folder)
+                        try? modelContext.save()
+                        dismiss()
+                    }
+                }
+                .foregroundStyle(.textHighlight1)
+                .disabled(folderName.isEmpty)
             }
-            .alert("名称已被使用", isPresented: $showAlert) {
-                Button("好", role: .cancel) {}
-            } message: {
-                Text("请选取一个不同的名称")
-            }
+            .padding()
+            
+            TextField("名称", text: $folderName)
+                .frame(height: 24)
+                .padding(.vertical, 12)
+                .padding(.horizontal, Distances.itemPaddingH)
+                .background(.areaItem)
+                .cornerRadius(21)
+                .padding(.horizontal)
+                .focused($isFocused)
+                .font(.system(size: FontSizes.bodyText))
+            
+            Spacer()
+        }
+        .alert("名称已被使用", isPresented: $showAlert) {
+            Button("好", role: .cancel) {}
+        } message: {
+            Text("请选取一个不同的名称")
         }
         .onAppear {
             folderName = ""

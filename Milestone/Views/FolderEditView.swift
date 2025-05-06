@@ -14,52 +14,50 @@ struct FolderEditView: View {
     
     // MARK: - 主视图
     var body: some View {
-        NavigationView {
-            VStack {
-                HStack {
-                    Button("取消") {
+        VStack {
+            HStack {
+                Button("取消") {
+                    dismiss()
+                }
+                .foregroundStyle(.textHighlight1)
+                
+                Spacer()
+                
+                Text("重新命名文件夹")
+                    .font(.system(size: FontSizes.bodyText, weight: .semibold))
+                
+                Spacer()
+                
+                Button("完成") {
+                    if exists() {
+                        showAlert = true
+                    } else {
+                        folder.name = folderName
+                        try? modelContext.save()
                         dismiss()
                     }
-                    .foregroundStyle(.textHighlight1)
-                    
-                    Spacer()
-                    
-                    Text("重新命名文件夹")
-                        .font(.system(size: FontSizes.bodyText, weight: .semibold))
-                    
-                    Spacer()
-                    
-                    Button("完成") {
-                        if exists() {
-                            showAlert = true
-                        } else {
-                            folder.name = folderName
-                            try? modelContext.save()
-                            dismiss()
-                        }
-                    }
-                    .foregroundStyle(.textHighlight1)
-                    .disabled(folderName.isEmpty)
                 }
-                .padding()
-                
-                SelectableTextField(text: $folderName, isFirstResponder: Binding.constant(true), placeholder: "名称")
-                    .frame(height: 24)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, Distances.itemPaddingH)
-                    .background(.areaItem)
-                    .cornerRadius(21)
-                    .padding(.horizontal)
-                    .focused($isFocused)
-                    .font(.system(size: FontSizes.bodyText))
-                    
-                Spacer()
+                .foregroundStyle(.textHighlight1)
+                .disabled(folderName.isEmpty)
             }
-            .alert("名称已被使用", isPresented: $showAlert) {
-                Button("好", role: .cancel) {}
-            } message: {
-                Text("请选取一个不同的名称")
-            }
+            .padding()
+            
+            SelectableTextField(text: $folderName, isFirstResponder: Binding.constant(true), placeholder: "名称")
+                .frame(height: 24)
+                .padding(.vertical, 12)
+                .padding(.horizontal, Distances.itemPaddingH)
+                .background(.areaItem)
+                .cornerRadius(21)
+                .padding(.horizontal)
+                .focused($isFocused)
+                .font(.system(size: FontSizes.bodyText))
+            
+            Spacer()
+        }
+        .alert("名称已被使用", isPresented: $showAlert) {
+            Button("好", role: .cancel) {}
+        } message: {
+            Text("请选取一个不同的名称")
         }
         .onAppear {
             folderName = folder.name
