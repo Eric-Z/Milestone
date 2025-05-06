@@ -9,6 +9,7 @@ struct MilestoneView: View {
     @Query private var milestones: [Milestone]
     
     let onSelectMode: Bool
+    var readOnly: Bool = false
     let folder: Folder
     
     @State var milestone: Milestone
@@ -16,7 +17,7 @@ struct MilestoneView: View {
     
     // MARK: - 主视图
     var body: some View {
-        if !milestone.isEditing {
+        if (!milestone.isEditing || readOnly) {
             viewMode
                 .transition(.scale(scale: 0.8, anchor: .center).combined(with: .opacity))
         } else {
