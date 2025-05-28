@@ -1,6 +1,5 @@
 import SwiftUI
 import Combine
-import SwipeActions
 import SwiftData
 
 struct MilestoneListView: View {
@@ -13,6 +12,7 @@ struct MilestoneListView: View {
     @State private var filteredMilestones: [Milestone] = []
     @State private var selectedMilestone: Milestone? = nil
     
+    @State private var showSelectFolder: Bool = false
     @State private var showEditFolder: Bool = false
     
     @State private var onAddMode: Bool = false
@@ -318,14 +318,22 @@ struct MilestoneListView: View {
             let operateAll = isAllChecked || isAllNotChecked
             Button {
             } label: {
-                if (operateAll) {
-                    Text("移动全部")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.textHighlight1)
-                } else {
-                    Text("移动")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.textHighlight1)
+                Group {
+                    if (operateAll) {
+                        Text("移动全部")
+                        
+                    } else {
+                        Text("移动")
+                    }
+                }
+                .font(.system(size: 17))
+                .foregroundStyle(.textHighlight1)
+                .onTapGesture {
+                    showSelectFolder.toggle()
+                }
+                .sheet(isPresented: $showSelectFolder, onDismiss: filterAndSort) {
+                    let toMoveMilestons = operateAll ? filteredMilestones : filteredMilestones.filter{ $0.isChecked }
+                    FolderSelectionView(milestones: toMoveMilestons, folder: folder)
                 }
             }
             

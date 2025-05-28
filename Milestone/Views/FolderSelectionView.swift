@@ -3,10 +3,15 @@ import SwiftData
 
 struct FolderSelectionView: View {
     
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    
     @Query(sort: \Folder.name) private var folders: [Folder]
     @State private var allFolders: [Folder] = []
     
-    let milestone: Milestone
+    @State private var showNewFilePopOver : Bool = false
+    
+    let milestones: [Milestone]
     let folder: Folder
     
     var body: some View {
@@ -15,6 +20,9 @@ struct FolderSelectionView: View {
                 Text("取消")
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(.textHighlight1)
+                    .onTapGesture {
+                        dismiss()
+                    }
                 
                 Spacer()
                 
@@ -31,12 +39,6 @@ struct FolderSelectionView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 11)
-            
-            HStack(spacing: 0) {
-                MilestoneView(onSelectMode: false, readOnly: true, folder: folder, milestone: milestone)
-            }
-            .padding(.horizontal, Distances.listPadding)
-            .padding(.top, 4)
             
             HStack {
                 HStack(alignment: .center, spacing: 10) {
@@ -60,6 +62,12 @@ struct FolderSelectionView: View {
             }
             .padding(.horizontal, Distances.listPadding)
             .padding(.top, 16)
+            .onTapGesture {
+                showNewFilePopOver.toggle()
+            }
+            .sheet(isPresented: $showNewFilePopOver, onDismiss: refresh) {
+                FolderAddView()
+            }
             
             List {
                 ForEach(allFolders) { folder in
@@ -83,6 +91,14 @@ struct FolderSelectionView: View {
                     .frame(height: 50)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
+                    .onTapGesture {
+                        milestones.forEach {
+                            $0.folderId = folder.id.uuidString
+                            $0.deleteDate = nil
+                        }
+                        try? modelContext.save()
+                        dismiss()
+                    }
                 }
                 .padding(.horizontal, Distances.itemPaddingV)
             }
@@ -126,10 +142,14 @@ struct FolderSelectionView: View {
         let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
         milestone1.isPinned = true
         
+        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
+        milestone2.isPinned = false
+        
         context.insert(folder)
         context.insert(milestone1)
+        context.insert(milestone2)
         
-        return FolderSelectionView(milestone: milestone1, folder: folder).modelContainer(container)
+        return FolderSelectionView(milestones: [milestone1, milestone2], folder: folder).modelContainer(container)
     } catch {
         return Text("无法创建 ModelContainer")
     }

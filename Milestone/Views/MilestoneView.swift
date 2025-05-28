@@ -17,7 +17,7 @@ struct MilestoneView: View {
     
     // MARK: - 主视图
     var body: some View {
-        if (!milestone.isEditing || readOnly) {
+        if (!milestone.isEditing || readOnly || milestone.deleteDate != nil) {
             viewMode
                 .transition(.scale(scale: 0.8, anchor: .center).combined(with: .opacity))
         } else {
@@ -124,7 +124,7 @@ struct MilestoneView: View {
             } else {
                 if milestones.first(where: { $0.isEditing }) != nil  {
                     
-                } else {
+                } else if (milestone.deleteDate == nil) {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
                         milestone.isEditing = true
                         try? modelContext.save()
