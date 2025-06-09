@@ -13,5 +13,4 @@ struct FontSizes {
     public static let noteText = CGFloat(12)
     
     public static let tagText = CGFloat(14)
-    
 }

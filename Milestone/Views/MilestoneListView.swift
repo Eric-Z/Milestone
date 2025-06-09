@@ -10,10 +10,10 @@ struct MilestoneListView: View {
     @Query private var milestones: [Milestone]
     
     @State private var filteredMilestones: [Milestone] = []
-    @State private var selectedMilestone: Milestone? = nil
     
     @State private var showSelectFolder: Bool = false
     @State private var showEditFolder: Bool = false
+    @State private var showDatePicker: Bool = false
     
     @State private var onAddMode: Bool = false
     @State private var onSelectMode: Bool = false
@@ -189,8 +189,13 @@ struct MilestoneListView: View {
         Color.black.opacity(0.1)
             .ignoresSafeArea()
             .onTapGesture {
-                selectedMilestone = nil
-                dismiss()
+                if (self.showDatePicker) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0.3)) {
+                        self.showDatePicker.toggle()
+                    }
+                } else {
+                    dismiss()
+                }
             }
             .transition(.opacity)
     }
@@ -199,6 +204,7 @@ struct MilestoneListView: View {
     private var addOverlay: some View {
         MilestoneAddView(
             folder: folder,
+            showDatePicker: $showDatePicker,
             onSave: {
                 dismiss()
                 filterAndSort()
@@ -214,7 +220,6 @@ struct MilestoneListView: View {
         VStack {
             Spacer()
             Button {
-                selectedMilestone = nil
                 add()
             } label: {
                 Image(systemName: "plus")

@@ -7,11 +7,11 @@ struct MilestoneAddView: View {
     @Environment(\.dismiss) private var dismiss
     
     var folder: Folder?
+    @Binding var showDatePicker: Bool
     
     @State private var title: String = ""
     @State private var remark: String = ""
     @State private var date: Date = Date()
-    @State private var showDatePicker: Bool = false
     
     var onSave: () -> Void = {}
     
@@ -132,5 +132,5 @@ struct MilestoneAddView: View {
 }
 
 #Preview {
-    MilestoneAddView()
+    MilestoneAddView(showDatePicker: Binding.constant(true))
 }
