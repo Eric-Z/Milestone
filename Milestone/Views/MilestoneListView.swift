@@ -136,13 +136,15 @@ struct MilestoneListView: View {
                 ForEach(filteredMilestones) { milestone in
                     SwipeView {
                         MilestoneView(
-                            onSelectMode: onSelectMode,
                             folder: folder,
+                            onSelectMode: onSelectMode,
                             milestone: milestone
                         )
                     } leadingActions: { context in
+                        let days = Calendar.current.dateComponents([.day], from: Date(), to: milestone.date).day ?? 0
+                        
                         if !onSelectMode && !milestone.isEditing {
-                            SwipeAction(systemImage: milestone.isPinned ? "pin.slash" : "pin", backgroundColor: .textHighlight1) {
+                            SwipeAction(systemImage: milestone.isPinned ? "pin.slash" : "pin", backgroundColor: days > 0 ? .textHighlight2 : .textHighlight1) {
                                 milestone.isPinned.toggle()
                                 withAnimation(.spring()) {
                                     filterAndSort()
@@ -173,7 +175,6 @@ struct MilestoneListView: View {
                     .swipeActionCornerRadius(21)
                     .swipeActionWidth(60)
                     .padding(.horizontal, Distances.itemPaddingH)
-                    .padding(.bottom, Distances.itemGap)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                     .listRowBackground(Color.clear)
@@ -272,17 +273,19 @@ struct MilestoneListView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 10) {
                     if (folder.isSystem) {
-                        Button {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                                onSelectMode.toggle()
-                                close.send()
-                                milestones.forEach { $0.isChecked = false }
-                                try? modelContext.save()
+                        if (!filteredMilestones.isEmpty) {
+                            Button {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                                    onSelectMode.toggle()
+                                    close.send()
+                                    milestones.forEach { $0.isChecked = false }
+                                    try? modelContext.save()
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis.circle")
+                                    .font(.system(size: 17))
+                                    .foregroundStyle(.textHighlight1)
                             }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .font(.system(size: 17))
-                                .foregroundStyle(.textHighlight1)
                         }
                     } else {
                         Menu {

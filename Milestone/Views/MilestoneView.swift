@@ -8,9 +8,34 @@ struct MilestoneView: View {
     @Query(sort: \Folder.name) private var folders: [Folder]
     @Query private var milestones: [Milestone]
     
+    let folder: Folder
     let onSelectMode: Bool
     var readOnly: Bool = false
-    let folder: Folder
+    
+    var orangeColor = LinearGradient(
+        stops: [
+            Gradient.Stop(color: .orange6, location: 0.00),
+            Gradient.Stop(color: .orange5, location: 1.00),
+        ],
+        startPoint: UnitPoint(x: 0.5, y: 0),
+        endPoint: UnitPoint(x: 0.5, y: 1)
+    )
+    var blueColor = LinearGradient(
+        stops: [
+            Gradient.Stop(color: .blue6, location: 0.00),
+            Gradient.Stop(color: .blue5, location: 1.00),
+        ],
+        startPoint: UnitPoint(x: 0.5, y: 0),
+        endPoint: UnitPoint(x: 0.5, y: 1)
+    )
+    var normalColor = LinearGradient(
+        stops: [
+            Gradient.Stop(color: .areaItem, location: 0.00),
+            Gradient.Stop(color: .areaItem, location: 1.00),
+        ],
+        startPoint: UnitPoint(x: 0.5, y: 0),
+        endPoint: UnitPoint(x: 0.5, y: 1)
+    )
     
     @State var milestone: Milestone
     @State private var showDatePicker: Bool = false
@@ -29,7 +54,10 @@ struct MilestoneView: View {
     // MARK: - 只读
     @ViewBuilder
     private var viewMode: some View {
-        let days = Calendar.current.dateComponents([.day], from: Date(), to: milestone.date).day ?? 0
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let targetDate = calendar.startOfDay(for: milestone.date)
+        let days = calendar.dateComponents([.day], from: today, to: targetDate).day ?? 0
         
         HStack(spacing: 0) {
             
@@ -48,7 +76,13 @@ struct MilestoneView: View {
             
             VStack(alignment: .leading, spacing: 0) {
                 Group {
-                    if days > 0 {
+                    if days == 1 {
+                        HStack(spacing: 0) {
+                            Text("\(milestone.title)")
+                            Text("就在明天！")
+                                .foregroundStyle(milestone.isPinned ? .white : .textHighlight1)
+                        }
+                    } else if days > 0 {
                         Text("\(milestone.title)还有")
                     } else if days < 0 {
                         Text("\(milestone.title)已经")
@@ -115,7 +149,7 @@ struct MilestoneView: View {
         .padding(.horizontal, Distances.itemPaddingH)
         .padding(.vertical, Distances.itemPaddingV)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(milestone.isPinned ? (days > 0 ? .textHighlight2 : .textHighlight1) : .areaItem)
+        .background(milestone.isPinned ? (days > 0 ? blueColor : orangeColor) : normalColor)
         .contentShape(Rectangle())
         .onTapGesture { // 修改这里的逻辑
             if onSelectMode {
@@ -254,7 +288,7 @@ struct MilestoneView: View {
         let folder = Folder(name: "旅行")
         
         let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
-        milestone1.isPinned = true
+        milestone1.isPinned = false
         
         let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
         milestone2.isPinned = false
@@ -265,8 +299,8 @@ struct MilestoneView: View {
         
         // 确保 Preview 调用与新的初始化器匹配
         return MilestoneView(
-            onSelectMode: false,
             folder: folder,
+            onSelectMode: false,
             milestone: milestone1,
         )
         .modelContainer(container)
