@@ -17,7 +17,7 @@ struct MilestoneAddView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
                     TextField("里程碑", text: $title)
                         .font(.system(size: FontSizes.bodyText, weight: .medium))
@@ -35,36 +35,92 @@ struct MilestoneAddView: View {
                 }
                 
                 TextField("添加备注", text: $remark)
-                    .font(.system(size: 14))
+                    .font(.system(size: FontSizes.bodyText))
+                    .kerning(0.17)
                     .foregroundColor(.textPlaceholderDisable)
+                    .padding(.top, 8)
             }
             .padding(.horizontal, Distances.itemPaddingH)
-            .padding(.vertical, Distances.itemPaddingV)
+            .padding(.top, 14)
             .frame(height: 72)
             
-            Button {
-                // 收起键盘
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    showDatePicker.toggle()
-                }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 17))
-                        .imageScale(.large)
+            HStack(spacing: 0) {
+                Button {
+                    // 收起键盘
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     
-                    Text(dateFormatter.string(from: date))
-                        .font(.system(size: 17))
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showDatePicker.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 0) {
+                        Text(dateFormatter.string(from: date))
+                            .font(.system(size: 17, weight: .medium))
+                    }
+                    .foregroundColor(.textHighlight1)
+                    .padding(.horizontal, Distances.itemPaddingH)
+                    .padding(.top, 8)
+                    .padding(.bottom, 14)
+                    .frame(alignment: .leading)
                 }
-                .foregroundColor(.textHighlight1)
-                .padding(.horizontal, Distances.itemPaddingH)
-                .padding(.vertical, 11)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.areaItem)
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            
+            HStack(alignment: .top, spacing: 14) {
+                Button {
+                    
+                } label: {
+                    Image(systemName: "pin")
+                        .font(.system(size: FontSizes.bodyText, weight: .medium))
+                        .foregroundStyle(.textHighlight1)
+                        .padding(12)
+                        .background(
+                            Circle()
+                            .fill(.areaBackground)
+                            .frame(width: 44, height: 44, alignment: .center)
+                        )
+                }
+                
+                Button {
+                    
+                } label: {
+                    Image(systemName: "folder")
+                        .font(.system(size: FontSizes.bodyText, weight: .medium))
+                        .foregroundStyle(.textHighlight1)
+                        .padding(12)
+                        .background(
+                            Circle()
+                            .fill(.areaBackground)
+                            .frame(width: 44, height: 44, alignment: .center)
+                        )
+                }
+                
+                Spacer()
+                
+                Button {
+                    
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: FontSizes.bodyText, weight: .medium))
+                        .foregroundStyle(.red)
+                        .padding(12)
+                        .background(Circle().fill(.areaBackground))
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 13)
+            .padding(.bottom, 14)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .background(
+                LinearGradient(
+                    stops: [
+                        Gradient.Stop(color: .areaItem, location: 0.00),
+                        Gradient.Stop(color: .areaItemLight, location: 1.00),
+                    ],
+                    startPoint: UnitPoint(x: 0.5, y: 0),
+                    endPoint: UnitPoint(x: 0.5, y: 1)
+                )
+            )
         }
         .background(Color(.systemBackground))
         .cornerRadius(21)
@@ -132,5 +188,5 @@ struct MilestoneAddView: View {
 }
 
 #Preview {
-    MilestoneAddView(showDatePicker: Binding.constant(true))
+    MilestoneAddView(showDatePicker: Binding.constant(false))
 }
