@@ -280,7 +280,7 @@ public struct SwipeAction<Label: View, Background: View>: View {
 
         let (totalOpacity, labelOpacity): (Double, Double) = {
             if changeLabelVisibilityOnly {
-                return (1, swipeContext.opacity)
+                return (1, 1) // 标签始终为纯白色，不受滑动距离影响
             } else {
                 return (swipeContext.opacity, 1)
             }
