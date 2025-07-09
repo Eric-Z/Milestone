@@ -151,7 +151,7 @@ struct MilestoneView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(milestone.isPinned ? (days > 0 ? blueColor : orangeColor) : normalColor)
         .contentShape(Rectangle())
-        .onTapGesture { // 修改这里的逻辑
+        .onTapGesture {
             if onSelectMode {
                 milestone.isChecked.toggle()
                 try? modelContext.save()

@@ -13,7 +13,9 @@ struct MilestoneListView: View {
     
     @State private var showSelectFolder: Bool = false
     @State private var showEditFolder: Bool = false
+    @State private var showAddButton: Bool = true
     @State private var showDatePicker: Bool = false
+    @State private var showDeleteConfirm: Bool = false
     
     @State private var onAddMode: Bool = false
     @State private var onSelectMode: Bool = false
@@ -41,7 +43,7 @@ struct MilestoneListView: View {
                     .zIndex(2)
             }
             
-            if !onAddMode {
+            if showAddButton {
                 floatingActionButton
                     .zIndex(3)
             }
@@ -55,6 +57,10 @@ struct MilestoneListView: View {
         .toolbar { toolbarContent }
         .onAppear {
             filterAndSort()
+            
+            if (folder.id == Constants.FOLDER_DELETED_UUID) {
+                showAddButton = false
+            }
             
             // 如果收到自动显示添加视图的信号，执行添加
             if autoShowPublisher.shouldAutoShow {
@@ -117,7 +123,7 @@ struct MilestoneListView: View {
     // MARK: - 里程碑列表或空页面
     @ViewBuilder
     private var listOrEmpty: some View {
-        if filteredMilestones.isEmpty {
+        if filteredMilestones.isEmpty && folder.id != Constants.FOLDER_DELETED_UUID {
             if !onAddMode {
                 NoMilestoneView()
                     .transition(.opacity)
@@ -140,6 +146,20 @@ struct MilestoneListView: View {
                             onSelectMode: onSelectMode,
                             milestone: milestone
                         )
+                        .confirmationDialog("里程碑将被删除，此操作不能撤销。", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+                            Button("删除里程碑", role: .destructive) {
+                                modelContext.delete(milestone)
+                                try? modelContext.save()
+                                
+                                withAnimation(.spring()) {
+                                    filterAndSort()
+                                }
+                                showDeleteConfirm = false
+                            }
+                            Button("取消", role: .cancel) {
+                                showDeleteConfirm = false
+                            }
+                        }
                     } leadingActions: { context in
                         let days = Calendar.current.dateComponents([.day], from: Date(), to: milestone.date).day ?? 0
                         
@@ -419,6 +439,8 @@ struct MilestoneListView: View {
      展示新增里程碑弹窗
      */
     private func add() {
+        showAddButton = false
+        
         if !onAddMode {
             // 收起键盘
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -432,6 +454,7 @@ struct MilestoneListView: View {
      隐藏新增/更新里程碑弹窗
      */
     private func dismiss() {
+        showAddButton = true
         // 收起键盘
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         withAnimation(.spring()) {
@@ -451,8 +474,7 @@ struct MilestoneListView: View {
             milestone.deleteDate = Date()
             try? modelContext.save()
         } else {
-            modelContext.delete(milestone)
-            try? modelContext.save()
+            showDeleteConfirm = true
         }
         
         filterAndSort()
