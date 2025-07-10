@@ -128,7 +128,6 @@ struct FolderListView: View {
                         }
                     }
                     .swipeActionCornerRadius(21)
-                    .swipeActionWidth(50)
                     .padding(.horizontal, 14)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
