@@ -3,7 +3,7 @@ import SwiftData
 import Combine
 
 struct FolderListView: View {
-    // MARK: - 属性
+    
     @Query(sort: \Folder.name) private var folders: [Folder]
     @Query private var milestones: [Milestone]
     
@@ -11,78 +11,87 @@ struct FolderListView: View {
     
     @State private var allFolders: [Folder] = []
     
-    @State private var showEditMode = false
+    @State private var showEditFolder = false
     @State private var showAddFolder = false
     
+    @State private var deletingFolder: Folder? = nil
     @State private var editingFolder: Folder? = nil
     @State private var selectedFolder: Folder? = nil
     
+    @State var closeSwipe = PassthroughSubject<Void, Never> ()
+    
     // 用于将信息传递给MilestoneListView的单例
     let autoShowAddPublisher = AutoShowAddPublisher.shared
-    
-    @State var close = PassthroughSubject<Void, Never> ()
     
     // MARK: - 主视图
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                editButton
-                title
+                folderNumber
                 folderList
                 bottomToolbar
             }
+            .navigationTitle("Milestone")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        withAnimation(.spring()) {
+                            closeSwipe.send()
+                            showEditFolder.toggle()
+                        }
+                    } label: {
+                        Text(showEditFolder ? "完成" : "编辑")
+                            .fontWeight(.medium)
+                            .foregroundColor(.textHighlight1)
+                    }
+                }
+            }
+            .confirmationDialog(
+                "文件夹将被删除，此操作不能撤销。",
+                isPresented: Binding(
+                    get: { deletingFolder != nil },
+                    set: { deletingFolder = $0 ? deletingFolder : nil }
+                ),
+                titleVisibility: .visible) {
+                    Button("删除文件夹", role: .destructive) {
+                        for milestone in milestones {
+                            if milestone.folderId == deletingFolder!.id.uuidString {
+                                milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
+                                milestone.deleteDate = Date()
+                            }
+                        }
+                        modelContext.delete(deletingFolder!)
+                        try? modelContext.save()
+                        
+                        deletingFolder = nil
+                        refresh()
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    }
+                    
+                    Button("取消", role: .cancel) {
+                        deletingFolder = nil
+                        closeSwipe.send()
+                    }
+                }
         }
         .tint(.textHighlight1)
         .onAppear {
             refresh()
         }
-        .onChange(of: folders) { _, _ in
-            refresh()
-        }
-        .onChange(of: milestones) { _, _ in
-            refresh()
-        }
     }
     
-    // MARK: - 编辑按钮
-    private var editButton: some View {
-        HStack(spacing: 0) {
+    // MARK: - 文件夹数量
+    private var folderNumber: some View {
+        HStack(spacing: 5) {
+            Text("\(allFolders.count)")
+                .font(.system(size: FontSizes.largeNoteNumber, weight: .semibold, design: .rounded))
+                .foregroundColor(.textNote)
+            
+            Text("个文件夹")
+                .font(.system(size: FontSizes.largeNoteText, weight: .semibold))
+                .foregroundColor(.textNote)
+            
             Spacer()
-            
-            Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                    showEditMode.toggle()
-                    close.send()
-                }
-            } label: {
-                Text(showEditMode ? "完成" : "编辑")
-                    .font(.system(size: FontSizes.bodyText, weight: .medium))
-                    .foregroundColor(.textHighlight1)
-            }
-        }
-        .padding(.trailing, 16)
-        .padding(.vertical, 11)
-    }
-    
-    // MARK: - 标题
-    private var title: some View {
-        VStack(spacing: 0) {
-            Text("Milestone")
-                .font(.system(size: 36, weight: .bold, design: .rounded))
-                .foregroundColor(.textBody)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-            
-            HStack(alignment: .center, spacing: 5) {
-                let folderSize = allFolders.count
-                Text("\(folderSize)")
-                    .font(.system(size: FontSizes.largeNoteNumber, weight: .semibold, design: .rounded))
-                    .foregroundColor(.textNote)
-                
-                Text("个文件夹")
-                    .font(.system(size: FontSizes.largeNoteText, weight: .semibold))
-                    .foregroundColor(.textNote)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-            }
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 12)
@@ -94,33 +103,25 @@ struct FolderListView: View {
             SwipeViewGroup {
                 ForEach(allFolders) { folder in
                     SwipeView {
-                        FolderView(folder: folder, isEditMode: showEditMode)
+                        FolderView(folder: folder, isEditMode: showEditFolder)
                             .onTapGesture {
-                                if !showEditMode {
+                                if !showEditFolder {
                                     selectedFolder = folder
                                 }
                             }
                     } trailingActions: { context in
-                        if !folder.isSystem && !showEditMode {
-                            SwipeAction(systemImage: "square.and.pencil", backgroundColor: .purple6) {
-                                editingFolder = folder
+                        if !folder.isSystem && !showEditFolder {
+                            Group {
+                                SwipeAction(systemImage: "square.and.pencil", backgroundColor: .purple6) {
+                                    editingFolder = folder
+                                }
+                                
+                                SwipeAction(systemImage: "trash", backgroundColor: .red) {
+                                    deletingFolder = folder
+                                }
+                                .foregroundStyle(.white)
                             }
-                            .swipeActionChangeLabelVisibilityOnly(true)
-                            .onReceive(close) { _ in
-                                context.state.wrappedValue = .closed
-                            }
-                            .foregroundStyle(.white)
-                            
-                            SwipeAction(
-                                systemImage: "trash",
-                                backgroundColor: .red
-                            ) {
-                                let generator = UINotificationFeedbackGenerator()
-                                generator.notificationOccurred(.success)
-                                delete(folder)
-                            }
-                            .swipeActionChangeLabelVisibilityOnly(true)
-                            .onReceive(close) { _ in
+                            .onReceive(closeSwipe) { _ in
                                 context.state.wrappedValue = .closed
                             }
                             .foregroundStyle(.white)
@@ -137,18 +138,13 @@ struct FolderListView: View {
         .listStyle(.plain)
         .navigationDestination(isPresented: Binding(
             get: { selectedFolder != nil },
-            set: {
-                if !$0 { selectedFolder = nil }
-                refresh()
-            }
+            set: { selectedFolder = $0 ? selectedFolder : nil }
         )) {
             if let folder = selectedFolder {
                 MilestoneListView(folder: folder)
             }
         }
-        .sheet(item: $editingFolder, onDismiss: {
-            close.send()
-        }) { folderToEdit in
+        .sheet(item: $editingFolder, onDismiss: { closeSwipe.send() }) { folderToEdit in
             FolderEditView(folder: folderToEdit)
         }
     }
@@ -207,37 +203,6 @@ struct FolderListView: View {
     }
     
     /**
-     删除文件夹
-     */
-    private func delete(_ folder: Folder) {
-        if allFolders.firstIndex(where: { $0.id == folder.id }) != nil {
-            if !folder.isSystem {
-                for milestone in milestones {
-                    if milestone.folderId == folder.id.uuidString {
-                        milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
-                        milestone.deleteDate = Date()
-                    }
-                }
-                modelContext.delete(folder)
-
-                saveContext()
-                refresh()
-            }
-        }
-    }
-    
-    /**
-     保存上下文
-     */
-    private func saveContext() {
-        do {
-            try modelContext.save()
-        } catch {
-            print("保存失败: \(error.localizedDescription)")
-        }
-    }
-    
-    /**
      点击添加里程碑按钮
      */
     private func addMilestone() {
@@ -273,17 +238,6 @@ class AutoShowAddPublisher: ObservableObject {
         let folder2 = Folder(name: "旅游")
         context.insert(folder1)
         context.insert(folder2)
-        
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        
-        let milestone1 = Milestone(folderId: folder2.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
-        milestone1.isPinned = true
-        context.insert(milestone1)
-        
-        let milestone2 = Milestone(folderId: folder2.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
-        milestone2.isPinned = false
-        context.insert(milestone2)
         
         return FolderListView().modelContainer(container)
     } catch {
