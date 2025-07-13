@@ -77,6 +77,12 @@ struct FolderListView: View {
         .onAppear {
             refresh()
         }
+        .onChange(of: folders) { _, _ in
+            refresh()
+        }
+        .onChange(of: milestones) { _, _ in
+            refresh()
+        }
     }
     
     // MARK: - 文件夹数量
