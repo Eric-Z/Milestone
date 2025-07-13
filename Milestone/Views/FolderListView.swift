@@ -20,8 +20,7 @@ struct FolderListView: View {
     
     @State var closeSwipe = PassthroughSubject<Void, Never> ()
     
-    // 用于将信息传递给MilestoneListView的单例
-    let autoShowAddPublisher = AutoShowAddPublisher.shared
+    let showAddMilestonePublisher = ShowAddMilestonePublisher.shared
     
     // MARK: - 主视图
     var body: some View {
@@ -205,21 +204,15 @@ struct FolderListView: View {
      点击添加里程碑按钮
      */
     private func addMilestone() {
-        // 查找全部里程碑文件夹
-        if let allMilestoneFolder = allFolders.first(where: { $0.id == Constants.FOLDER_ALL_UUID }) {
-            // 设置信号，告知MilestoneListView应该自动打开添加视图
-            autoShowAddPublisher.shouldAutoShow = true
-            
-            // 选择全部文件夹，触发导航
-            selectedFolder = allMilestoneFolder
-        }
+        let allMilestoneFolder = allFolders.first(where: { $0.id == Constants.FOLDER_ALL_UUID })
+        showAddMilestonePublisher.show = true
+        selectedFolder = allMilestoneFolder
     }
 }
 
-// 用于在视图之间传递自动显示添加视图的信号
-class AutoShowAddPublisher: ObservableObject {
-    static let shared = AutoShowAddPublisher()
-    @Published var shouldAutoShow = false
+class ShowAddMilestonePublisher: ObservableObject {
+    static let shared = ShowAddMilestonePublisher()
+    @Published var show = false
     
     private init() {}
 }

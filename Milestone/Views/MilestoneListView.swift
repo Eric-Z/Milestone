@@ -21,7 +21,7 @@ struct MilestoneListView: View {
     @State private var onSelectMode: Bool = false
     
     // 获取自动显示添加视图的信号
-    @ObservedObject private var autoShowPublisher = AutoShowAddPublisher.shared
+    @ObservedObject private var autoShowPublisher = ShowAddMilestonePublisher.shared
     
     @State var close = PassthroughSubject<Void, Never> ()
     
@@ -63,12 +63,12 @@ struct MilestoneListView: View {
             }
             
             // 如果收到自动显示添加视图的信号，执行添加
-            if autoShowPublisher.shouldAutoShow {
+            if autoShowPublisher.show {
                 // 延迟执行以确保视图已完全加载
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     add()
                     // 重置标志，避免影响其他视图
-                    autoShowPublisher.shouldAutoShow = false
+                    autoShowPublisher.show = false
                 }
             }
         }
@@ -438,7 +438,7 @@ struct MilestoneListView: View {
     /**
      展示新增里程碑弹窗
      */
-    private func add() {
+private func add() {
         showAddButton = false
         
         if !onAddMode {
