@@ -34,14 +34,24 @@ struct FolderListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        withAnimation(.spring()) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 1, blendDuration: 1)) {
                             closeSwipe.send()
                             showEditFolder.toggle()
                         }
                     } label: {
-                        Text(showEditFolder ? "完成" : "编辑")
-                            .fontWeight(.medium)
-                            .foregroundColor(.textHighlight1)
+                        if (self.showEditFolder) {
+                            Image(systemName: "checkmark")
+                                .fontWeight(.medium)
+                                .foregroundStyle(.textHighlight1)
+                                .frame(width: 56, height: 44)
+                                .cornerRadius(22)
+                        } else {
+                            Text("编辑")
+                                .fontWeight(.medium)
+                                .foregroundStyle(.textHighlight1)
+                                .frame(width: 56, height: 44)
+                                .cornerRadius(22)
+                        }
                     }
                 }
             }
@@ -104,42 +114,41 @@ struct FolderListView: View {
     
     // MARK: - 文件夹列表
     private var folderList: some View {
-        List {
-            SwipeViewGroup {
-                ForEach(allFolders) { folder in
-                    SwipeView {
-                        FolderView(folder: folder, isEditMode: showEditFolder)
-                            .onTapGesture {
-                                if !showEditFolder {
-                                    selectedFolder = folder
+        ScrollView {
+            LazyVStack(spacing: 10) {
+                SwipeViewGroup {
+                    ForEach(allFolders) { folder in
+                        SwipeView {
+                            FolderView(folder: folder, isEditMode: showEditFolder)
+                                .onTapGesture {
+                                    if !showEditFolder {
+                                        selectedFolder = folder
+                                    }
                                 }
-                            }
-                    } trailingActions: { context in
-                        if !folder.isSystem && !showEditFolder {
-                            Group {
-                                SwipeAction(systemImage: "square.and.pencil", backgroundColor: .purple6) {
-                                    editingFolder = folder
+                        } trailingActions: { context in
+                            if !folder.isSystem && !showEditFolder {
+                                Group {
+                                    SwipeAction(systemImage: "square.and.pencil", backgroundColor: .purple6) {
+                                        editingFolder = folder
+                                    }
+                                    
+                                    SwipeAction(systemImage: "trash", backgroundColor: .red) {
+                                        deletingFolder = folder
+                                    }
+                                    .foregroundStyle(.white)
                                 }
-                                
-                                SwipeAction(systemImage: "trash", backgroundColor: .red) {
-                                    deletingFolder = folder
+                                .onReceive(closeSwipe) { _ in
+                                    context.state.wrappedValue = .closed
                                 }
                                 .foregroundStyle(.white)
                             }
-                            .onReceive(closeSwipe) { _ in
-                                context.state.wrappedValue = .closed
-                            }
-                            .foregroundStyle(.white)
                         }
+                        .swipeActionCornerRadius(21)
+                        .padding(.horizontal, 14)
                     }
-                    .swipeActionCornerRadius(21)
-                    .padding(.horizontal, 14)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: Distances.listGap, trailing: 0))
                 }
             }
         }
-        .listStyle(.plain)
         .navigationDestination(isPresented: Binding(
             get: { selectedFolder != nil },
             set: { selectedFolder = $0 ? selectedFolder : nil }
@@ -234,8 +243,28 @@ class ShowAddMilestonePublisher: ObservableObject {
         
         let folder1 = Folder(name: "生日")
         let folder2 = Folder(name: "旅游")
+        let folder3 = Folder(name: "1")
+        let folder4 = Folder(name: "2")
+        let folder5 = Folder(name: "3")
+        let folder6 = Folder(name: "4")
+        let folder7 = Folder(name: "5")
+        let folder8 = Folder(name: "6")
+        let folder9 = Folder(name: "7")
+        let folder10 = Folder(name: "8")
+        let folder11 = Folder(name: "9")
+        let folder12 = Folder(name: "10")
         context.insert(folder1)
         context.insert(folder2)
+        context.insert(folder3)
+        context.insert(folder4)
+        context.insert(folder5)
+        context.insert(folder6)
+        context.insert(folder7)
+        context.insert(folder8)
+        context.insert(folder9)
+        context.insert(folder10)
+        context.insert(folder11)
+        context.insert(folder12)
         
         return FolderListView().modelContainer(container)
     } catch {
