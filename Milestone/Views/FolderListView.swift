@@ -143,6 +143,7 @@ struct FolderListView: View {
                                 .foregroundStyle(.white)
                             }
                         }
+                        .swipeMinimumDistance(30)
                         .swipeActionCornerRadius(21)
                         .padding(.horizontal, 14)
                     }
