@@ -3,9 +3,9 @@ import SwiftData
 
 struct FolderView: View {
     
-    @Environment(\.modelContext) private var modelContext
-    
     @Query private var milestones: [Milestone]
+    
+    @Environment(\.modelContext) private var modelContext
     
     var folder: Folder
     var isEditMode = false
@@ -63,11 +63,13 @@ struct FolderView: View {
                             .frame(width: 24, alignment: .center)
                     }
                 }
-                .transition(AnyTransition.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .trailing)
-                        .combined(with: AnyTransition.opacity)
-                ))
+                .transition(
+                    AnyTransition.asymmetric(
+                        insertion: .move(edge: .trailing),
+                        removal: .move(edge: .trailing)
+                            .combined(with: AnyTransition.opacity)
+                    )
+                )
             }
         }
         .sheet(isPresented: $showEditFolder) {

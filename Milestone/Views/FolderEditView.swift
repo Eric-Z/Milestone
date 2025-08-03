@@ -4,10 +4,12 @@ import SwiftData
 struct FolderEditView: View {
     
     @Query private var folders: [Folder]
+    
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
     var folder: Folder
+    
     @State private var folderName = ""
     @State private var showAlert = false
     @FocusState private var isFocused: Bool

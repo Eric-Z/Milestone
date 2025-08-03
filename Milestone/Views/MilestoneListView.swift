@@ -4,8 +4,8 @@ import SwiftData
 
 struct MilestoneListView: View {
     
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.modelContext) private var modelContext
     
     @Query private var milestones: [Milestone]
     
@@ -36,9 +36,7 @@ struct MilestoneListView: View {
             if onAddMode {
                 maskLayer
                     .zIndex(1)
-            }
-            
-            if onAddMode {
+                
                 addOverlay
                     .zIndex(2)
             }
@@ -48,12 +46,11 @@ struct MilestoneListView: View {
                     .zIndex(3)
             }
             
-            if onSelectMode && milestones.count >= 1 {
+            if onSelectMode && filteredMilestones.count >= 1 {
                 bottomToolbarView
                     .zIndex(3)
             }
         }
-        .navigationBarBackButtonHidden(true)
         .toolbar { toolbarContent }
         .onAppear {
             filterAndSort()
@@ -62,12 +59,9 @@ struct MilestoneListView: View {
                 showAddButton = false
             }
             
-            // 如果收到自动显示添加视图的信号，执行添加
             if autoShowPublisher.show {
-                // 延迟执行以确保视图已完全加载
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     add()
-                    // 重置标志，避免影响其他视图
                     autoShowPublisher.show = false
                 }
             }
@@ -89,15 +83,16 @@ struct MilestoneListView: View {
     private var header: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                let selectedMilestoneCount = filteredMilestones.count(where: { $0.isChecked })
+                let selectedCount = filteredMilestones.count(where: { $0.isChecked })
                 
-                if onSelectMode && selectedMilestoneCount > 0 {
-                    Text("已选定\(selectedMilestoneCount)项")
-                        .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
-                } else {
-                    Text("\(folder.name)")
-                        .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
+                Group {
+                    if selectedCount > 0 {
+                        Text("已选定\(selectedCount)项")
+                    } else {
+                        Text("\(folder.name)")
+                    }
                 }
+                .font(.system(size: FontSizes.largeTitleText, weight: .semibold))
                 
                 Group {
                     if filteredMilestones.isEmpty {
@@ -123,12 +118,12 @@ struct MilestoneListView: View {
     // MARK: - 里程碑列表或空页面
     @ViewBuilder
     private var listOrEmpty: some View {
-        if filteredMilestones.isEmpty && folder.id != Constants.FOLDER_DELETED_UUID {
-            if !onAddMode {
+        if filteredMilestones.isEmpty {
+            if folder.id == Constants.FOLDER_DELETED_UUID  || onAddMode {
+                Spacer()
+            } else {
                 NoMilestoneView()
                     .transition(.opacity)
-            } else {
-                Spacer()
             }
         } else {
             milestoneList
@@ -151,13 +146,11 @@ struct MilestoneListView: View {
                                 modelContext.delete(milestone)
                                 try? modelContext.save()
                                 
-                                withAnimation(.spring()) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 1, blendDuration: 1)) {
                                     filterAndSort()
                                 }
-                                showDeleteConfirm = false
                             }
                             Button("取消", role: .cancel) {
-                                showDeleteConfirm = false
                             }
                         }
                     } leadingActions: { context in
@@ -192,6 +185,7 @@ struct MilestoneListView: View {
                             .foregroundStyle(.white)
                         }
                     }
+                    .swipeMinimumDistance(30)
                     .swipeActionCornerRadius(21)
                     .swipeActionWidth(60)
                     .padding(.horizontal, Distances.itemPaddingH)
@@ -259,23 +253,6 @@ struct MilestoneListView: View {
     // MARK: - 工具栏
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .navigationBarLeading) {
-            Button {
-                presentationMode.wrappedValue.dismiss()
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.textHighlight1)
-                    
-                    Text("文件夹")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.textHighlight1)
-                }
-                .padding(.vertical, 11)
-            }
-        }
-        
         if onSelectMode {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {

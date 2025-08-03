@@ -3,12 +3,12 @@ import SwiftData
 
 struct FolderSelectionView: View {
     
+    @Query(sort: \Folder.name) private var folders: [Folder]
+    
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    @Query(sort: \Folder.name) private var folders: [Folder]
     @State private var allFolders: [Folder] = []
-    
     @State private var showNewFilePopOver : Bool = false
     
     let milestones: [Milestone]
@@ -110,6 +110,7 @@ struct FolderSelectionView: View {
         }
     }
     
+    // MARK: - 方法
     /**
      刷新文件夹列表
      */
