@@ -4,28 +4,22 @@ import SwiftData
 
 struct MilestoneListView: View {
     
-    @Environment(\.presentationMode) var presentationMode
     @Environment(\.modelContext) private var modelContext
-    
     @Query private var milestones: [Milestone]
     
     @State private var filteredMilestones: [Milestone] = []
+    @State private var showSelectFolder = false
+    @State private var showEditFolder = false
+    @State private var showAddButton = true
+    @State private var showDatePicker = false
+    @State private var showDeleteConfirm = false
+    @State private var isAdding = false
+    @State private var isSelecting = false
     
-    @State private var showSelectFolder: Bool = false
-    @State private var showEditFolder: Bool = false
-    @State private var showAddButton: Bool = true
-    @State private var showDatePicker: Bool = false
-    @State private var showDeleteConfirm: Bool = false
-    
-    @State private var onAddMode: Bool = false
-    @State private var onSelectMode: Bool = false
-    
-    // 获取自动显示添加视图的信号
     @ObservedObject private var autoShowPublisher = ShowAddMilestonePublisher.shared
+    @State private var closeSwipe = PassthroughSubject<Void, Never>()
     
-    @State var close = PassthroughSubject<Void, Never> ()
-    
-    var folder: Folder
+    let folder: Folder
     
     // MARK: - 主视图
     var body: some View {
@@ -33,7 +27,7 @@ struct MilestoneListView: View {
             mainContent
                 .zIndex(0)
             
-            if onAddMode {
+            if isAdding {
                 maskLayer
                     .zIndex(1)
                 
@@ -46,7 +40,7 @@ struct MilestoneListView: View {
                     .zIndex(3)
             }
             
-            if onSelectMode && filteredMilestones.count >= 1 {
+            if isSelecting && filteredMilestones.count >= 1 {
                 bottomToolbarView
                     .zIndex(3)
             }
@@ -55,7 +49,7 @@ struct MilestoneListView: View {
         .onAppear {
             filterAndSort()
             
-            if (folder.id == Constants.FOLDER_DELETED_UUID) {
+            if folder.id == Constants.FOLDER_DELETED_UUID {
                 showAddButton = false
             }
             
@@ -119,7 +113,7 @@ struct MilestoneListView: View {
     @ViewBuilder
     private var listOrEmpty: some View {
         if filteredMilestones.isEmpty {
-            if folder.id == Constants.FOLDER_DELETED_UUID  || onAddMode {
+            if folder.id == Constants.FOLDER_DELETED_UUID || isAdding {
                 Spacer()
             } else {
                 NoMilestoneView()
@@ -138,7 +132,7 @@ struct MilestoneListView: View {
                     SwipeView {
                         MilestoneView(
                             folder: folder,
-                            onSelectMode: onSelectMode,
+                            onSelectMode: isSelecting,
                             milestone: milestone
                         )
                         .confirmationDialog("里程碑将被删除，此操作不能撤销。", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
@@ -156,30 +150,30 @@ struct MilestoneListView: View {
                     } leadingActions: { context in
                         let days = Calendar.current.dateComponents([.day], from: Date(), to: milestone.date).day ?? 0
                         
-                        if !onSelectMode && !milestone.isEditing {
+                        if !isSelecting && !milestone.isEditing {
                             SwipeAction(systemImage: milestone.isPinned ? "pin.slash" : "pin", backgroundColor: days > 0 ? .textHighlight2 : .textHighlight1) {
                                 milestone.isPinned.toggle()
                                 withAnimation(.spring()) {
                                     filterAndSort()
                                 }
-                                close.send()
+                                closeSwipe.send()
                             }
                             .swipeActionChangeLabelVisibilityOnly(true)
                             .allowSwipeToTrigger()
-                            .onReceive(close) { _ in
+                            .onReceive(closeSwipe) { _ in
                                 context.state.wrappedValue = .closed
                             }
                             .foregroundStyle(.white)
                         }
                     } trailingActions: { context in
-                        if !onSelectMode && !milestone.isEditing {
+                        if !isSelecting && !milestone.isEditing {
                             SwipeAction(systemImage: "trash", backgroundColor: .red) {
                                 delete(milestone)
-                                close.send()
+                                closeSwipe.send()
                             }
                             .swipeActionChangeLabelVisibilityOnly(true)
                             .allowSwipeToTrigger()
-                            .onReceive(close) { _ in
+                            .onReceive(closeSwipe) { _ in
                                 context.state.wrappedValue = .closed
                             }
                             .foregroundStyle(.white)
@@ -204,7 +198,7 @@ struct MilestoneListView: View {
         Color.black.opacity(0.1)
             .ignoresSafeArea()
             .onTapGesture {
-                if (self.showDatePicker) {
+                if self.showDatePicker {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0.3)) {
                         self.showDatePicker.toggle()
                     }
@@ -253,12 +247,12 @@ struct MilestoneListView: View {
     // MARK: - 工具栏
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        if onSelectMode {
+        if isSelecting {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                        onSelectMode.toggle()
-                        close.send()
+                        isSelecting.toggle()
+                        closeSwipe.send()
                     }
                 } label: {
                     Text("完成")
@@ -269,12 +263,12 @@ struct MilestoneListView: View {
         } else {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 10) {
-                    if (folder.isSystem) {
-                        if (!filteredMilestones.isEmpty) {
+                    if folder.isSystem {
+                        if !filteredMilestones.isEmpty {
                             Button {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                                    onSelectMode.toggle()
-                                    close.send()
+                                    isSelecting.toggle()
+                                    closeSwipe.send()
                                     milestones.forEach { $0.isChecked = false }
                                     try? modelContext.save()
                                 }
@@ -295,8 +289,8 @@ struct MilestoneListView: View {
                             
                             Button(action: {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
-                                    onSelectMode = true
-                                    close.send()
+                                    isSelecting = true
+                                    closeSwipe.send()
                                     milestones.forEach { $0.isChecked = false }
                                     try? modelContext.save()
                                 }
@@ -318,19 +312,11 @@ struct MilestoneListView: View {
     // MARK: - 底部菜单栏
     private var bottomToolbarView: some View {
         HStack(spacing: 0) {
-            let isAllChecked = filteredMilestones.allSatisfy { $0.isChecked }
-            let isAllNotChecked = filteredMilestones.allSatisfy { !$0.isChecked }
-            let operateAll = isAllChecked || isAllNotChecked
+            let checkedCount = filteredMilestones.count { $0.isChecked }
+            let operateAll = checkedCount == 0 || checkedCount == filteredMilestones.count
             Button {
             } label: {
-                Group {
-                    if (operateAll) {
-                        Text("移动全部")
-                        
-                    } else {
-                        Text("移动")
-                    }
-                }
+                Text(operateAll ? "移动全部" : "移动")
                 .font(.system(size: 17))
                 .foregroundStyle(.textHighlight1)
                 .onTapGesture {
@@ -345,66 +331,12 @@ struct MilestoneListView: View {
             Spacer()
             
             Button {
-                if operateAll {
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.success)
-                    
-                    if folder.id != Constants.FOLDER_DELETED_UUID {
-                        filteredMilestones.forEach {
-                            $0.folderId = Constants.FOLDER_DELETED_UUID.uuidString
-                            $0.deleteDate = Date()
-                        }
-                        try? modelContext.save()
-                    } else {
-                        filteredMilestones.forEach { modelContext.delete($0) }
-                        try? modelContext.save()
-                    }
-                    
-                    filterAndSort()
-                    
-                    // 退出编辑模式
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
-                        onSelectMode = false
-                    }
-                } else {
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.success)
-                    
-                    
-                    if folder.id != Constants.FOLDER_DELETED_UUID {
-                        filteredMilestones.forEach {
-                            if $0.isChecked {
-                                $0.folderId = Constants.FOLDER_DELETED_UUID.uuidString
-                                $0.deleteDate = Date()
-                            }
-                        }
-                        try? modelContext.save()
-                    } else {
-                        filteredMilestones.forEach {
-                            if $0.isChecked {
-                                modelContext.delete($0)
-                            }
-                        }
-                        try? modelContext.save()
-                    }
-                    
-                    filterAndSort()
-                    
-                    // 退出编辑模式
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
-                        onSelectMode = false
-                    }
-                }
+                let toDelete = operateAll ? filteredMilestones : filteredMilestones.filter { $0.isChecked }
+                deleteMilestones(toDelete)
             } label: {
-                if (operateAll) {
-                    Text("全部删除")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.textHighlight1)
-                } else {
-                    Text("删除")
-                        .font(.system(size: 17))
-                        .foregroundStyle(.textHighlight1)
-                }
+                Text(operateAll ? "全部删除" : "删除")
+                    .font(.system(size: 17))
+                    .foregroundStyle(.textHighlight1)
             }
         }
         .padding(.horizontal, 16)
@@ -415,14 +347,14 @@ struct MilestoneListView: View {
     /**
      展示新增里程碑弹窗
      */
-private func add() {
+    private func add() {
         showAddButton = false
         
-        if !onAddMode {
+        if !isAdding {
             // 收起键盘
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
-                onAddMode = true
+                isAdding = true
             }
         }
     }
@@ -435,7 +367,7 @@ private func add() {
         // 收起键盘
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         withAnimation(.spring()) {
-            onAddMode = false
+            isAdding = false
         }
     }
     
@@ -443,8 +375,7 @@ private func add() {
      删除里程碑
      */
     private func delete(_ milestone: Milestone) {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+        hapticFeedback()
         
         if folder.id != Constants.FOLDER_DELETED_UUID {
             milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
@@ -455,6 +386,37 @@ private func add() {
         }
         
         filterAndSort()
+    }
+    
+    /**
+     触觉反馈
+     */
+    private func hapticFeedback() {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+    }
+    
+    /**
+     批量删除里程碑
+     */
+    private func deleteMilestones(_ milestones: [Milestone]) {
+        hapticFeedback()
+        
+        if folder.id != Constants.FOLDER_DELETED_UUID {
+            milestones.forEach {
+                $0.folderId = Constants.FOLDER_DELETED_UUID.uuidString
+                $0.deleteDate = Date()
+            }
+        } else {
+            milestones.forEach { modelContext.delete($0) }
+        }
+        
+        try? modelContext.save()
+        filterAndSort()
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
+            isSelecting = false
+        }
     }
     
     /**
