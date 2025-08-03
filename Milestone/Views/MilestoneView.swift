@@ -173,7 +173,7 @@ struct MilestoneView: View {
     @ViewBuilder
     private var editMode: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
                     TextField("里程碑", text: $milestone.title)
                         .font(.system(size: FontSizes.bodyText, weight: .medium))

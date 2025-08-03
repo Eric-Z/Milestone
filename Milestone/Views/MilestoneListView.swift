@@ -137,8 +137,12 @@ struct MilestoneListView: View {
                         )
                         .confirmationDialog("里程碑将被删除，此操作不能撤销。", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
                             Button("删除里程碑", role: .destructive) {
+                                hapticFeedback()
+                                
                                 modelContext.delete(milestone)
                                 try? modelContext.save()
+                                
+                                NotificationCenter.default.post(name: Notification.Name("MilestoneDeleted"), object: nil)
                                 
                                 withAnimation(.spring(response: 0.3, dampingFraction: 1, blendDuration: 1)) {
                                     filterAndSort()
@@ -381,6 +385,8 @@ struct MilestoneListView: View {
             milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
             milestone.deleteDate = Date()
             try? modelContext.save()
+            
+            NotificationCenter.default.post(name: Notification.Name("MilestoneDeleted"), object: nil)
         } else {
             showDeleteConfirm = true
         }
@@ -407,11 +413,15 @@ struct MilestoneListView: View {
                 $0.folderId = Constants.FOLDER_DELETED_UUID.uuidString
                 $0.deleteDate = Date()
             }
+            try? modelContext.save()
+            
+            // 发送通知，通知父视图数据已更新
+            NotificationCenter.default.post(name: Notification.Name("MilestoneDeleted"), object: nil)
         } else {
             milestones.forEach { modelContext.delete($0) }
+            try? modelContext.save()
         }
         
-        try? modelContext.save()
         filterAndSort()
         
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {

@@ -87,6 +87,11 @@ struct FolderListView: View {
         .onAppear {
             refresh()
         }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("MilestoneDeleted"))) { _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                refresh()
+            }
+        }
         .onChange(of: folders) { _, _ in
             refresh()
         }
@@ -152,7 +157,15 @@ struct FolderListView: View {
         }
         .navigationDestination(isPresented: Binding(
             get: { selectedFolder != nil },
-            set: { selectedFolder = $0 ? selectedFolder : nil }
+            set: { 
+                if !$0 {
+                    // 当从里程碑页面返回时刷新数据
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        refresh()
+                    }
+                }
+                selectedFolder = $0 ? selectedFolder : nil
+            }
         )) {
             if let folder = selectedFolder {
                 MilestoneListView(folder: folder)
@@ -207,8 +220,12 @@ struct FolderListView: View {
         systemFolder.isSystem = true
         allFolders.insert(systemFolder, at: 0)
         
+        // 直接从 modelContext 查询最新的里程碑数据
+        let descriptor = FetchDescriptor<Milestone>()
+        let latestMilestones = (try? modelContext.fetch(descriptor)) ?? []
+        
         // 添加最近删除文件夹
-        if milestones.first(where: { $0.deleteDate != nil }) != nil {
+        if latestMilestones.first(where: { $0.deleteDate != nil }) != nil {
             let latestDeleteFolder = Folder(name: Constants.FOLDER_DELETED)
             latestDeleteFolder.id = Constants.FOLDER_DELETED_UUID
             latestDeleteFolder.isSystem = true
