@@ -259,10 +259,50 @@ class ShowAddMilestonePublisher: ObservableObject {
         let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         let context = container.mainContext
         
-        let folder1 = Folder(name: "生日")
-        let folder2 = Folder(name: "旅游")
-        context.insert(folder1)
-        context.insert(folder2)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        let folder = Folder(name: "旅行")
+        
+        let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
+        milestone1.isPinned = true
+        
+        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        milestone2.isPinned = false
+        
+        let milestone3 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone4 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone5 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone6 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone7 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone8 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone9 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone10 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone11 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone12 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        context.insert(folder)
+        context.insert(milestone1)
+        context.insert(milestone2)
+        context.insert(milestone3)
+        context.insert(milestone4)
+        context.insert(milestone5)
+        context.insert(milestone6)
+        context.insert(milestone7)
+        context.insert(milestone8)
+        context.insert(milestone9)
+        context.insert(milestone10)
+        context.insert(milestone11)
+        context.insert(milestone12)
         
         return FolderListView().modelContainer(container)
     } catch {

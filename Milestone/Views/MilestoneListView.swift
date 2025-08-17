@@ -39,11 +39,6 @@ struct MilestoneListView: View {
                 floatingActionButton
                     .zIndex(3)
             }
-            
-            if isSelecting && filteredMilestones.count >= 1 {
-                bottomToolbarView
-                    .zIndex(3)
-            }
         }
         .toolbar { toolbarContent }
         .onAppear {
@@ -62,6 +57,13 @@ struct MilestoneListView: View {
         }
         .sheet(isPresented: $showEditFolder) {
             FolderEditView(folder: folder)
+        }
+        .safeAreaInset(edge: .bottom) {
+            if isSelecting && filteredMilestones.count >= 1 {
+                bottomToolbarView
+                    .background(.areaBackground)
+                    .overlay(Divider(), alignment: .top)
+            }
         }
     }
     
@@ -256,12 +258,15 @@ struct MilestoneListView: View {
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
                         isSelecting.toggle()
+                        showAddButton = true
                         closeSwipe.send()
                     }
                 } label: {
-                    Text("完成")
-                        .font(.system(size: FontSizes.bodyText, weight: .medium))
-                        .foregroundColor(.textHighlight1)
+                    Image(systemName: "checkmark")
+                        .fontWeight(.medium)
+                        .foregroundStyle(.textHighlight1)
+                        .frame(width: 56, height: 44)
+                        .cornerRadius(22)
                 }
             }
         } else {
@@ -271,6 +276,7 @@ struct MilestoneListView: View {
                         if !filteredMilestones.isEmpty {
                             Button {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                                    showAddButton = false
                                     isSelecting.toggle()
                                     closeSwipe.send()
                                     milestones.forEach { $0.isChecked = false }
@@ -293,6 +299,7 @@ struct MilestoneListView: View {
                             
                             Button(action: {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 1)) {
+                                    showAddButton = false
                                     isSelecting = true
                                     closeSwipe.send()
                                     milestones.forEach { $0.isChecked = false }
@@ -426,6 +433,7 @@ struct MilestoneListView: View {
         
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.3)) {
             isSelecting = false
+            showAddButton = true
         }
     }
     
@@ -481,12 +489,42 @@ struct MilestoneListView: View {
         let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
         milestone1.isPinned = true
         
-        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
+        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
         milestone2.isPinned = false
+        
+        let milestone3 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone4 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone5 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone6 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone7 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone8 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone9 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone10 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone11 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
+        
+        let milestone12 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
         
         context.insert(folder)
         context.insert(milestone1)
         context.insert(milestone2)
+        context.insert(milestone3)
+        context.insert(milestone4)
+        context.insert(milestone5)
+        context.insert(milestone6)
+        context.insert(milestone7)
+        context.insert(milestone8)
+        context.insert(milestone9)
+        context.insert(milestone10)
+        context.insert(milestone11)
+        context.insert(milestone12)
         
         return MilestoneListView(folder: folder).modelContainer(container)
     } catch {
