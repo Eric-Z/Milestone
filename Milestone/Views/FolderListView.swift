@@ -11,92 +11,118 @@ struct FolderListView: View {
     
     @State private var allFolders: [Folder] = []
     
-    @State private var showEditFolder = false
+    @State private var showEdit = false
     @State private var showAddFolder = false
     
     @State private var deletingFolder: Folder? = nil
     @State private var editingFolder: Folder? = nil
     @State private var selectedFolder: Folder? = nil
     
-    @State var closeSwipe = PassthroughSubject<Void, Never> ()
+    @State private var searchText = ""
     
     let showAddMilestonePublisher = ShowAddMilestonePublisher.shared
     
     // MARK: - 主视图
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                folderNumber
-                folderList
-                bottomToolbar
-            }
-            .navigationTitle("Milestone")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 1, blendDuration: 1)) {
-                            closeSwipe.send()
-                            showEditFolder.toggle()
-                        }
-                    } label: {
-                        if (self.showEditFolder) {
-                            Image(systemName: "checkmark")
-                                .fontWeight(.medium)
-                                .foregroundStyle(.textHighlight1)
-                                .frame(width: 56, height: 44)
-                                .cornerRadius(22)
-                        } else {
-                            Text("编辑")
-                                .fontWeight(.medium)
-                                .foregroundStyle(.textHighlight1)
-                                .frame(width: 56, height: 44)
-                                .cornerRadius(22)
-                        }
-                    }
-                }
-            }
-            .confirmationDialog(
-                "文件夹将被删除，此操作不能撤销。",
-                isPresented: Binding(
-                    get: { deletingFolder != nil },
-                    set: { deletingFolder = $0 ? deletingFolder : nil }
-                ),
-                titleVisibility: .visible) {
-                    Button("删除文件夹", role: .destructive) {
-                        for milestone in milestones {
-                            if milestone.folderId == deletingFolder!.id.uuidString {
-                                milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
-                                milestone.deleteDate = Date()
+            List {
+                ForEach(self.allFolders) { folder in
+                    FolderView(folder: folder, isEditMode: self.showEdit)
+                        .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                        .swipeActions {
+                            Button(role: .destructive) {
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                            
+                            Button {
+                                
+                            } label: {
+                                Image(systemName: "square.and.pencil")
                             }
                         }
-                        modelContext.delete(deletingFolder!)
-                        try? modelContext.save()
-                        
-                        deletingFolder = nil
-                        refresh()
-                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    }
-                    
-                    Button("取消", role: .cancel) {
-                        deletingFolder = nil
-                        closeSwipe.send()
+                }
+            }
+            .navigationTitle("Milestones")
+            .toolbar {
+                ToolbarItem {
+                    Button {
+                        self.showAddFolder.toggle()
+                    } label: {
+                        Image(systemName: "folder.badge.plus")
+                            .fontWeight(.medium)
                     }
                 }
-        }
-        .tint(.textHighlight1)
-        .onAppear {
-            refresh()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("MilestoneDeleted"))) { _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                
+                ToolbarSpacer(.fixed)
+                
+                ToolbarItem {
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 1, blendDuration: 1)) {
+                            self.showEdit.toggle()
+                        }
+                    } label: {
+                        if (self.showEdit) {
+                            Image(systemName: "checkmark")
+                                .fontWeight(.medium)
+                            
+                        } else {
+                            Text("Edit")
+                                .fontWeight(.medium)
+                        }
+                    }
+                }
+            }
+            .searchable(text: $searchText, placement: .automatic, prompt: "搜索")
+            .onAppear {
                 refresh()
             }
-        }
-        .onChange(of: folders) { _, _ in
-            refresh()
-        }
-        .onChange(of: milestones) { _, _ in
-            refresh()
+            .sheet(isPresented: $showAddFolder) {
+                FolderAddView()
+            }
+            //            .confirmationDialog(
+            //                "文件夹将被删除，此操作不能撤销。",
+            //                isPresented: Binding(
+            //                    get: { deletingFolder != nil },
+            //                    set: { deletingFolder = $0 ? deletingFolder : nil }
+            //                ),
+            //                titleVisibility: .visible) {
+            //                    Button("删除文件夹", role: .destructive) {
+            //                        for milestone in milestones {
+            //                            if milestone.folderId == deletingFolder!.id.uuidString {
+            //                                milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
+            //                                milestone.deleteDate = Date()
+            //                            }
+            //                        }
+            //                        modelContext.delete(deletingFolder!)
+            //                        try? modelContext.save()
+            //
+            //                        deletingFolder = nil
+            //                        refresh()
+            //                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+            //                    }
+            //
+            //                    Button("取消", role: .cancel) {
+            //                        deletingFolder = nil
+            //                    }
+            //                }
+            //        }
+            //        .tint(.textHighlight1)
+            //        .onAppear {
+            //            refresh()
+            //        }
+            //        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("MilestoneDeleted"))) { _ in
+            //            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            //                refresh()
+            //            }
+            //        }
+            //        .onChange(of: folders) { _, _ in
+            //            refresh()
+            //        }
+            //        .onChange(of: milestones) { _, _ in
+            //            refresh()
+            //        }
+            //    }
         }
     }
     
@@ -117,95 +143,6 @@ struct FolderListView: View {
         .padding(.bottom, 12)
     }
     
-    // MARK: - 文件夹列表
-    private var folderList: some View {
-        ScrollView {
-            LazyVStack(spacing: 10) {
-                SwipeViewGroup {
-                    ForEach(allFolders) { folder in
-                        SwipeView {
-                            FolderView(folder: folder, isEditMode: showEditFolder)
-                                .onTapGesture {
-                                    if !showEditFolder {
-                                        selectedFolder = folder
-                                    }
-                                }
-                        } trailingActions: { context in
-                            if !folder.isSystem && !showEditFolder {
-                                Group {
-                                    SwipeAction(systemImage: "square.and.pencil", backgroundColor: .purple6) {
-                                        editingFolder = folder
-                                    }
-                                    
-                                    SwipeAction(systemImage: "trash", backgroundColor: .red) {
-                                        deletingFolder = folder
-                                    }
-                                    .foregroundStyle(.white)
-                                }
-                                .onReceive(closeSwipe) { _ in
-                                    context.state.wrappedValue = .closed
-                                }
-                                .foregroundStyle(.white)
-                            }
-                        }
-                        .swipeMinimumDistance(30)
-                        .swipeActionCornerRadius(21)
-                        .padding(.horizontal, 14)
-                    }
-                }
-            }
-        }
-        .navigationDestination(isPresented: Binding(
-            get: { selectedFolder != nil },
-            set: { 
-                if !$0 {
-                    // 当从里程碑页面返回时刷新数据
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        refresh()
-                    }
-                }
-                selectedFolder = $0 ? selectedFolder : nil
-            }
-        )) {
-            if let folder = selectedFolder {
-                MilestoneListView(folder: folder)
-            }
-        }
-        .sheet(item: $editingFolder, onDismiss: { closeSwipe.send() }) { folderToEdit in
-            FolderEditView(folder: folderToEdit)
-        }
-    }
-    
-    // MARK: - 底栏
-    private var bottomToolbar: some View {
-        HStack(spacing: 0) {
-            Button {
-                showAddFolder = true
-            } label: {
-                Image(systemName: "folder.badge.plus")
-                    .font(.system(size: FontSizes.bodyText))
-                    .imageScale(.large)
-                    .foregroundStyle(.textHighlight1)
-            }
-            .sheet(isPresented: $showAddFolder) {
-                FolderAddView()
-            }
-            
-            Spacer()
-            
-            Button {
-                addMilestone()
-            } label: {
-                Image(systemName: "plus.circle")
-                    .font(.system(size: FontSizes.bodyText))
-                    .imageScale(.large)
-                    .foregroundStyle(.textHighlight1)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 11)
-    }
-    
     // MARK: - 方法
     /**
      刷新文件夹列表
@@ -217,10 +154,9 @@ struct FolderListView: View {
         // 添加全部里程碑文件夹
         let systemFolder = Folder(name: Constants.FOLDER_ALL)
         systemFolder.id = Constants.FOLDER_ALL_UUID
-        systemFolder.isSystem = true
+        systemFolder.type = .all
         allFolders.insert(systemFolder, at: 0)
         
-        // 直接从 modelContext 查询最新的里程碑数据
         let descriptor = FetchDescriptor<Milestone>()
         let latestMilestones = (try? modelContext.fetch(descriptor)) ?? []
         
@@ -228,7 +164,7 @@ struct FolderListView: View {
         if latestMilestones.first(where: { $0.deleteDate != nil }) != nil {
             let latestDeleteFolder = Folder(name: Constants.FOLDER_DELETED)
             latestDeleteFolder.id = Constants.FOLDER_DELETED_UUID
-            latestDeleteFolder.isSystem = true
+            latestDeleteFolder.type = .deleted
             allFolders.insert(latestDeleteFolder, at: allFolders.count)
         }
     }
@@ -259,50 +195,37 @@ class ShowAddMilestonePublisher: ObservableObject {
         let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         let context = container.mainContext
         
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
+        let folder1 = Folder(name: "旅行")
+        let folder2 = Folder(name: "生日")
+        let folder3 = Folder(name: "纪念日")
+        let folder4 = Folder(name: "节假日")
+        let folder5 = Folder(name: "演唱会")
+        let folder6 = Folder(name: "测试1")
+        let folder7 = Folder(name: "测试2")
+        let folder8 = Folder(name: "测试3")
+        let folder9 = Folder(name: "测试4")
+        let folder10 = Folder(name: "测试5")
+        let folder11 = Folder(name: "测试6")
+        let folder12 = Folder(name: "测试7")
+        let folder13 = Folder(name: "测试8")
+        let folder14 = Folder(name: "测试9")
+        let folder15 = Folder(name: "测试10")
         
-        let folder = Folder(name: "旅行")
-        
-        let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
-        milestone1.isPinned = true
-        
-        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        milestone2.isPinned = false
-        
-        let milestone3 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone4 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone5 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone6 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone7 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone8 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone9 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone10 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone11 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        let milestone12 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
-        
-        context.insert(folder)
-        context.insert(milestone1)
-        context.insert(milestone2)
-        context.insert(milestone3)
-        context.insert(milestone4)
-        context.insert(milestone5)
-        context.insert(milestone6)
-        context.insert(milestone7)
-        context.insert(milestone8)
-        context.insert(milestone9)
-        context.insert(milestone10)
-        context.insert(milestone11)
-        context.insert(milestone12)
+        context.insert(folder1)
+        context.insert(folder2)
+        context.insert(folder3)
+        context.insert(folder4)
+        context.insert(folder5)
+        context.insert(folder6)
+        context.insert(folder7)
+        context.insert(folder8)
+        context.insert(folder9)
+        context.insert(folder10)
+        context.insert(folder11)
+        context.insert(folder12)
+        context.insert(folder13)
+        context.insert(folder14)
+        context.insert(folder15)
         
         return FolderListView().modelContainer(container)
     } catch {
