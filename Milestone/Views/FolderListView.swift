@@ -98,23 +98,6 @@ struct FolderListView: View {
         }
     }
     
-    // MARK: - 文件夹数量
-    private var folderNumber: some View {
-        HStack(spacing: 5) {
-            Text("\(allFolders.count)")
-                .font(.system(size: FontSizes.largeNoteNumber, weight: .semibold, design: .rounded))
-                .foregroundColor(.textNote)
-            
-            Text("个文件夹")
-                .font(.system(size: FontSizes.largeNoteText, weight: .semibold))
-                .foregroundColor(.textNote)
-            
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 12)
-    }
-    
     // MARK: - 方法
     /**
      删除文件夹
@@ -140,14 +123,14 @@ struct FolderListView: View {
      刷新文件夹列表
      */
     private func refresh() {
-        allFolders = []
-        allFolders.insert(contentsOf: folders, at: 0)
+        self.allFolders = []
+        self.allFolders.insert(contentsOf: folders, at: 0)
         
         // 添加全部里程碑文件夹
         let systemFolder = Folder(name: Constants.FOLDER_ALL)
         systemFolder.id = Constants.FOLDER_ALL_UUID
         systemFolder.type = .all
-        allFolders.insert(systemFolder, at: 0)
+        self.allFolders.insert(systemFolder, at: 0)
         
         let descriptor = FetchDescriptor<Milestone>()
         let latestMilestones = (try? modelContext.fetch(descriptor)) ?? []
@@ -157,7 +140,7 @@ struct FolderListView: View {
             let latestDeleteFolder = Folder(name: Constants.FOLDER_DELETED)
             latestDeleteFolder.id = Constants.FOLDER_DELETED_UUID
             latestDeleteFolder.type = .deleted
-            allFolders.insert(latestDeleteFolder, at: allFolders.count)
+            self.allFolders.insert(latestDeleteFolder, at: allFolders.count)
         }
     }
     //

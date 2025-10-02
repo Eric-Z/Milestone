@@ -23,7 +23,7 @@ struct FolderEditView: View {
                     .padding(.vertical, 12)
                     .padding(.horizontal, Distances.itemPaddingH)
                     .background(.areaItem)
-                    .cornerRadius(21)
+                    .cornerRadius(22)
                     .padding(.horizontal)
                     .focused($isFocused)
                     .font(.system(size: FontSizes.bodyText))
@@ -61,9 +61,9 @@ struct FolderEditView: View {
             Text("请选取一个不同的名称")
         }
         .onAppear {
-            folderName = folder.name
-            showAlert = false
-            isFocused = true
+            self.folderName = folder.name
+            self.showAlert = false
+            self.isFocused = true
         }
     }
     
