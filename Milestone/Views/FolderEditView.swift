@@ -16,46 +16,45 @@ struct FolderEditView: View {
     
     // MARK: - 主视图
     var body: some View {
-        VStack {
-            HStack {
-                Button("取消") {
-                    dismiss()
-                }
-                .foregroundStyle(.textHighlight1)
+        NavigationStack {
+            VStack {
+                SelectableTextField(text: $folderName, isFirstResponder: Binding.constant(true), placeholder: "名称")
+                    .frame(height: 24)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, Distances.itemPaddingH)
+                    .background(.areaItem)
+                    .cornerRadius(21)
+                    .padding(.horizontal)
+                    .focused($isFocused)
+                    .font(.system(size: FontSizes.bodyText))
                 
                 Spacer()
-                
-                Text("重新命名文件夹")
-                    .font(.system(size: FontSizes.bodyText, weight: .semibold))
-                
-                Spacer()
-                
-                Button("完成") {
-                    if exists() {
-                        showAlert = true
-                    } else {
-                        folder.name = folderName
-                        try? modelContext.save()
+            }
+            .navigationTitle("重新命名文件夹")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .fontWeight(.medium)
                     }
                 }
-                .foregroundStyle(.textHighlight1)
-                .disabled(folderName.isEmpty)
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        save()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.medium)
+                    }
+                    .tint(.textHighlight1)
+                    .disabled(folderName.isEmpty)
+                }
             }
-            .padding()
-            
-            SelectableTextField(text: $folderName, isFirstResponder: Binding.constant(true), placeholder: "名称")
-                .frame(height: 24)
-                .padding(.vertical, 12)
-                .padding(.horizontal, Distances.itemPaddingH)
-                .background(.areaItem)
-                .cornerRadius(21)
-                .padding(.horizontal)
-                .focused($isFocused)
-                .font(.system(size: FontSizes.bodyText))
-            
-            Spacer()
         }
+        .accentColor(.textHighlight1)
         .alert("名称已被使用", isPresented: $showAlert) {
             Button("好", role: .cancel) {}
         } message: {
@@ -73,10 +72,24 @@ struct FolderEditView: View {
      检查文件夹名称是否被占用
      */
     private func exists() -> Bool {
-        if folderName == Constants.FOLDER_ALL || folderName == Constants.FOLDER_DELETED {
+        if self.folderName == Constants.FOLDER_ALL || self.folderName == Constants.FOLDER_DELETED {
             return true
         }
-        return folders.contains { $0.name.lowercased() == folderName.lowercased() && $0.id != folder.id}
+        return folders.contains { $0.name.lowercased() == self.folderName.lowercased() && $0.id != folder.id}
+    }
+    
+    /**
+     保存文件夹
+     */
+    private func save() {
+        if exists() {
+            self.showAlert = true
+        } else {
+            let folder = Folder(name: self.folderName)
+            self.modelContext.insert(folder)
+            try? self.modelContext.save()
+            dismiss()
+        }
     }
 }
 
@@ -89,12 +102,10 @@ struct FolderEditView: View {
         let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         let context = container.mainContext
         
-        let folder1 = Folder(name: "生日")
-        let folder2 = Folder(name: "旅游")
-        context.insert(folder1)
-        context.insert(folder2)
+        let folder = Folder(name: "生日")
+        context.insert(folder)
         
-        return FolderEditView(folder: folder1).modelContainer(container)
+        return FolderEditView(folder: folder).modelContainer(container)
     } catch {
         return Text("无法创建 ModelContainer")
     }
