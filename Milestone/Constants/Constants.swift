@@ -13,6 +13,16 @@ struct Constants {
     public static let FOLDER_ALL_UUID = UUID.init(uuidString: "3F2504E0-4F89-11D3-9A0C-0305E82C3301")!
     
     /**
+     文件夹：置顶
+     */
+    public static let FOLDER_PINNED = "置顶"
+    
+    /**
+     文件夹：置顶 UUID
+     */
+    public static let FOLDER_PINNED_UUID = UUID.init(uuidString: "D69E6753-61EB-4DED-A13E-34E6FEB3D1D")!
+    
+    /**
      文件夹：最近删除
      */
     public static let FOLDER_DELETED = "最近删除"

@@ -42,7 +42,7 @@ struct FolderAddView: View {
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        save()
+                        self.save()
                     } label: {
                         Image(systemName: "checkmark")
                             .fontWeight(.medium)

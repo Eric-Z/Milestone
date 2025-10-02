@@ -132,15 +132,23 @@ struct FolderListView: View {
         systemFolder.type = .all
         self.allFolders.insert(systemFolder, at: 0)
         
-        let descriptor = FetchDescriptor<Milestone>()
-        let latestMilestones = (try? modelContext.fetch(descriptor)) ?? []
+        // 添加置顶文件夹
+        if self.milestones.first(where: { $0.isPinned }) != nil {
+            let pinnedFolder = Folder(name: Constants.FOLDER_PINNED)
+            pinnedFolder.id = Constants.FOLDER_PINNED_UUID
+            pinnedFolder.type = .pinned
+            self.allFolders.insert(systemFolder, at: 1)
+        }
+        
+//        let descriptor = FetchDescriptor<Milestone>()
+//        let latestMilestones = (try? modelContext.fetch(descriptor)) ?? []
         
         // 添加最近删除文件夹
-        if latestMilestones.first(where: { $0.deleteDate != nil }) != nil {
-            let latestDeleteFolder = Folder(name: Constants.FOLDER_DELETED)
-            latestDeleteFolder.id = Constants.FOLDER_DELETED_UUID
-            latestDeleteFolder.type = .deleted
-            self.allFolders.insert(latestDeleteFolder, at: allFolders.count)
+        if self.milestones.first(where: { $0.deleteDate != nil }) != nil {
+            let deletedFolder = Folder(name: Constants.FOLDER_DELETED)
+            deletedFolder.id = Constants.FOLDER_DELETED_UUID
+            deletedFolder.type = .deleted
+            self.allFolders.insert(deletedFolder, at: allFolders.count)
         }
     }
     //
