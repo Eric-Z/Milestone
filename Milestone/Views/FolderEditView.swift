@@ -44,13 +44,13 @@ struct FolderEditView: View {
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        save()
+                        self.save()
                     } label: {
                         Image(systemName: "checkmark")
                             .fontWeight(.medium)
                     }
                     .tint(.textHighlight1)
-                    .disabled(folderName.isEmpty)
+                    .disabled(self.folderName.isEmpty)
                 }
             }
         }

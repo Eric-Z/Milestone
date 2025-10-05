@@ -48,7 +48,7 @@ struct FolderAddView: View {
                             .fontWeight(.medium)
                     }
                     .tint(.textHighlight1)
-                    .disabled(folderName.isEmpty)
+                    .disabled(self.folderName.isEmpty)
                 }
             }
         }

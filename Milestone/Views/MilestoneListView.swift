@@ -218,12 +218,12 @@ struct MilestoneListView: View {
     // MARK: - 新增里程碑弹框
     private var addOverlay: some View {
         MilestoneAddView(
-            folder: folder,
-            showDatePicker: $showDatePicker,
-            onSave: {
-                dismiss()
-                filterAndSort()
-            }
+//            folder: folder,
+//            showDatePicker: $showDatePicker,
+//            onSave: {
+//                dismiss()
+//                filterAndSort()
+//            }
         )
         .padding(.horizontal, Distances.listPadding)
         .padding(.bottom, 120)

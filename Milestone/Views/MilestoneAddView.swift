@@ -6,128 +6,132 @@ struct MilestoneAddView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    var folder: Folder?
-    @Binding var showDatePicker: Bool
-    
     @State private var title: String = ""
-    @State private var remark: String = ""
-    @State private var date: Date = Date()
-    
-    var onSave: () -> Void = {}
+    @State private var type: String = "Multi-Day"
+    @State private var allDay: Bool = true
+    @State private var startDate = Date()
+    @State private var endDate = Date()
+    @State private var repeatType: String = "Never"
+    @State private var photos: [Image] = []
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 0) {
-                    TextField("里程碑", text: $title)
-                        .font(.system(size: FontSizes.bodyText, weight: .medium))
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        save()
-                    }) {
-                        Text("完成")
-                            .font(.system(size: FontSizes.bodyText, weight: .semibold))
-                            .foregroundColor(title.isEmpty ? .textPlaceholderDisable : .textHighlight1)
-                    }
-                    .disabled(title.isEmpty)
-                }
-                
-                TextField("添加备注", text: $remark)
-                    .font(.system(size: 14))
-                    .foregroundColor(.textPlaceholderDisable)
-                
-            }
-            .padding(.horizontal, Distances.itemPaddingH)
-            .padding(.vertical, Distances.itemPaddingV)
-            .frame(height: 72)
-            
-            Button {
-                // 收起键盘
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    showDatePicker.toggle()
-                }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 17))
-                        .imageScale(.large)
-                    
-                    Text(dateFormatter.string(from: date))
-                        .font(.system(size: 17, weight: .medium))
-                }
-                .foregroundColor(.textHighlight1)
-                .padding(.horizontal, Distances.itemPaddingH)
-                .padding(.vertical, 11)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.areaItem)
-            }
-            .buttonStyle(.plain)
-        }
-        .background(Color(.systemBackground))
-        .cornerRadius(21)
-        .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 21)
-                .inset(by: 0.5)
-                .stroke(.areaBorder, lineWidth: 1)
-        )
-        
-        if showDatePicker {
-            VStack(spacing: 0) {
-                DatePicker("选择日期", selection: $date, displayedComponents: .date)
-                    .datePickerStyle(GraphicalDatePickerStyle())
+        NavigationStack {
+            VStack(spacing: 16) {
+                // Title
+                TextField("Title", text: $title)
                     .padding()
-                    .environment(\.locale, Locale(identifier: "zh_CN"))
-                    .environment(\.calendar, Calendar(identifier: .gregorian))
-                    .tint(.textHighlight1)
-                    .onChange(of: date) {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            showDatePicker = false
-                        }
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                
+                // Type + Date Section
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionRow("Type", value: type)
+                    Divider()
+                    Toggle(isOn: $allDay) {
+                        Text("All-Day")
                     }
+                    Divider()
+                    datePickerRow(title: "Starts", date: $startDate)
+                    Divider()
+                    datePickerRow(title: "Ends", date: $endDate)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(16)
+                .shadow(color: Color.black.opacity(0.05), radius: 2, y: 1)
+                .padding(.horizontal)
+                
+                // Repeat Section
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionRow("Repeat", value: repeatType)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(16)
+                .shadow(color: Color.black.opacity(0.05), radius: 2, y: 1)
+                .padding(.horizontal)
+                
+                // Photos Section
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Photos")
+                        Spacer()
+                        Text("\(photos.count)")
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack {
+                        ForEach(0..<min(5, photos.count), id: \.self) { _ in
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(.systemGray5))
+                                .frame(width: 60, height: 60)
+                        }
+                        Spacer()
+                    }
+                    
+                    Button("Add More...") {
+                        // action to add photo
+                    }
+                    .font(.callout)
+                    .foregroundStyle(.orange)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(16)
+                .shadow(color: Color.black.opacity(0.05), radius: 2, y: 1)
+                .padding(.horizontal)
+                .padding(.bottom, 24)
             }
-            .frame(width: 320, height: 320)
-            .background(.areaBackgroundPopup)
-            .cornerRadius(21)
-            .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
-            .transition(
-                .scale(scale: 0.5)
-                .combined(with: .opacity)
-            )
+            .navigationTitle("")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .fontWeight(.medium)
+                    }
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        //                        self.save()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.medium)
+                    }
+                    .tint(.textHighlight1)
+                    .disabled(self.title.isEmpty)
+                }
+            }
         }
     }
     
-    /**
-     保存里程碑
-     */
-    private func save() {
-        let newMilestone = Milestone(
-            folderId: folder?.id == Constants.FOLDER_ALL_UUID ? nil : folder?.id.uuidString,
-            title: title,
-            remark: remark,
-            date: date
-        )
-        modelContext.insert(newMilestone)
-        try? modelContext.save()
-        
-        onSave()
+    // MARK: - Reusable Components
+    
+    @ViewBuilder
+    private func sectionRow(_ title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(value)
+                .foregroundStyle(.secondary)
+        }
     }
     
-    /**
-     添加日期格式化器
-     */
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        formatter.locale = Locale(identifier: "zh_CN")
-        return formatter
+    @ViewBuilder
+    private func datePickerRow(title: String, date: Binding<Date>) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            DatePicker("", selection: date, displayedComponents: [.date, .hourAndMinute])
+                .labelsHidden()
+                .fixedSize()
+        }
     }
 }
 
 #Preview {
-    MilestoneAddView(showDatePicker: Binding.constant(false))
+    MilestoneAddView()
 }

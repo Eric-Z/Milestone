@@ -27,7 +27,7 @@ struct FolderView: View {
             
             Spacer()
             
-            if !isEditMode {
+            if !self.isEditMode {
                 Text("\(countFolderMilestone())")
                     .fontWeight(.medium)
                     .foregroundStyle(.labelSecondary)
@@ -43,7 +43,7 @@ struct FolderView: View {
                 HStack(spacing: 10) {
                     Menu {
                         Button(action: {
-                            showEditFolder = true
+                            self.showEditFolder = true
                         }) {
                             Label("Rename Folder", systemImage: "pencil")
                         }
@@ -80,12 +80,15 @@ struct FolderView: View {
      */
     private func countFolderMilestone() -> Int {
         if (folder.id == Constants.FOLDER_ALL_UUID) {
-            return milestones.filter { $0.deleteDate == nil }.count
+            return self.milestones.filter { $0.deleteDate == nil }.count
         }
         if (folder.id == Constants.FOLDER_DELETED_UUID) {
-            return milestones.filter { $0.deleteDate != nil }.count
+            return self.milestones.filter { $0.deleteDate != nil }.count
         }
-        return milestones.filter { $0.folderId == folder.id.uuidString }.count
+        if (folder.id == Constants.FOLDER_PINNED_UUID) {
+            return self.milestones.filter { $0.isPinned }.count
+        }
+        return self.milestones.filter { $0.folderId == folder.id.uuidString }.count
     }
 }
 

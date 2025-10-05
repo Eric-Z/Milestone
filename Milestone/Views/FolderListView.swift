@@ -15,7 +15,10 @@ struct FolderListView: View {
     @State private var showAdd = false
     
     @State private var editingFolder: Folder? = nil
+    @State private var selectedFolder: Folder? = nil
     @State private var searchText = ""
+    
+    let showAddMilestonePublisher = ShowAddMilestonePublisher.shared
     
     // MARK: - 主视图
     var body: some View {
@@ -24,6 +27,11 @@ struct FolderListView: View {
                 ForEach(self.allFolders) { folder in
                     FolderView(folder: folder, isEditMode: self.showEdit)
                         .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                        .onTapGesture {
+                            if !showEdit {
+                                selectedFolder = folder
+                            }
+                        }
                         .swipeActions(allowsFullSwipe: false) {
                             if (folder.type == .normal) {
                                 Button(role: .destructive) {
@@ -40,6 +48,21 @@ struct FolderListView: View {
                                 .tint(.purple6)
                             }
                         }
+                }
+            }
+            .navigationDestination(isPresented: Binding(
+                get: { self.selectedFolder != nil },
+                set: {
+                    if !$0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            refresh()
+                        }
+                    }
+                    self.selectedFolder = $0 ? self.selectedFolder : nil
+                }
+            )) {
+                if let folder = self.selectedFolder {
+                    MilestoneListView(folder: folder)
                 }
             }
             .navigationTitle("Milestones")
@@ -78,7 +101,7 @@ struct FolderListView: View {
                 
                 ToolbarItem(placement: .bottomBar) {
                     Button {
-                        
+                        self.addMilestone()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -127,21 +150,18 @@ struct FolderListView: View {
         self.allFolders.insert(contentsOf: folders, at: 0)
         
         // 添加全部里程碑文件夹
-        let systemFolder = Folder(name: Constants.FOLDER_ALL)
-        systemFolder.id = Constants.FOLDER_ALL_UUID
-        systemFolder.type = .all
-        self.allFolders.insert(systemFolder, at: 0)
+        let allFolder = Folder(name: Constants.FOLDER_ALL)
+        allFolder.id = Constants.FOLDER_ALL_UUID
+        allFolder.type = .all
+        self.allFolders.insert(allFolder, at: 0)
         
         // 添加置顶文件夹
         if self.milestones.first(where: { $0.isPinned }) != nil {
             let pinnedFolder = Folder(name: Constants.FOLDER_PINNED)
             pinnedFolder.id = Constants.FOLDER_PINNED_UUID
             pinnedFolder.type = .pinned
-            self.allFolders.insert(systemFolder, at: 1)
+            self.allFolders.insert(pinnedFolder, at: 1)
         }
-        
-//        let descriptor = FetchDescriptor<Milestone>()
-//        let latestMilestones = (try? modelContext.fetch(descriptor)) ?? []
         
         // 添加最近删除文件夹
         if self.milestones.first(where: { $0.deleteDate != nil }) != nil {
@@ -151,15 +171,15 @@ struct FolderListView: View {
             self.allFolders.insert(deletedFolder, at: allFolders.count)
         }
     }
-    //
-    //    /**
-    //     点击添加里程碑按钮
-    //     */
-    //    private func addMilestone() {
-    //        let allMilestoneFolder = allFolders.first(where: { $0.id == Constants.FOLDER_ALL_UUID })
-    //        showAddMilestonePublisher.show = true
-    //        selectedFolder = allMilestoneFolder
-    //    }
+    
+    /**
+     点击添加里程碑按钮
+     */
+    private func addMilestone() {
+        let allMilestoneFolder = self.allFolders.first(where: { $0.id == Constants.FOLDER_ALL_UUID })
+        self.showAddMilestonePublisher.show = true
+        self.selectedFolder = allMilestoneFolder
+    }
 }
 
 class ShowAddMilestonePublisher: ObservableObject {
@@ -183,32 +203,19 @@ class ShowAddMilestonePublisher: ObservableObject {
         let folder3 = Folder(name: "纪念日")
         let folder4 = Folder(name: "节假日")
         let folder5 = Folder(name: "演唱会")
-        let folder6 = Folder(name: "测试1")
-        let folder7 = Folder(name: "测试2")
-        let folder8 = Folder(name: "测试3")
-        let folder9 = Folder(name: "测试4")
-        let folder10 = Folder(name: "测试5")
-        let folder11 = Folder(name: "测试6")
-        let folder12 = Folder(name: "测试7")
-        let folder13 = Folder(name: "测试8")
-        let folder14 = Folder(name: "测试9")
-        let folder15 = Folder(name: "测试10")
         
         context.insert(folder1)
         context.insert(folder2)
         context.insert(folder3)
         context.insert(folder4)
         context.insert(folder5)
-        context.insert(folder6)
-        context.insert(folder7)
-        context.insert(folder8)
-        context.insert(folder9)
-        context.insert(folder10)
-        context.insert(folder11)
-        context.insert(folder12)
-        context.insert(folder13)
-        context.insert(folder14)
-        context.insert(folder15)
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let milestone1 = Milestone(folderId: folder1.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
+        milestone1.isPinned = true
+        
+        context.insert(milestone1)
         
         return FolderListView().modelContainer(container)
     } catch {
