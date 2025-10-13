@@ -115,7 +115,7 @@ struct FolderListView: View {
             .sheet(isPresented: $showAdd, onDismiss: { refresh() }) {
                 FolderAddView()
             }
-            .sheet(item: $editingFolder) { folderToEdit in
+            .sheet(item: $editingFolder, onDismiss: { refresh() }) { folderToEdit in
                 FolderEditView(folder: folderToEdit)
             }
         }

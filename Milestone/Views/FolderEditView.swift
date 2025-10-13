@@ -85,8 +85,7 @@ struct FolderEditView: View {
         if exists() {
             self.showAlert = true
         } else {
-            let folder = Folder(name: self.folderName)
-            self.modelContext.insert(folder)
+            folder.name = self.folderName
             try? self.modelContext.save()
             dismiss()
         }
