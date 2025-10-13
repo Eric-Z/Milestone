@@ -140,10 +140,10 @@ struct FolderSelectionView: View {
         
         let folder = Folder(name: "旅行")
         
-        let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
+        let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", date: formatter.date(from: "2025-04-25")!)
         milestone1.isPinned = true
         
-        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
+        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
         milestone2.isPinned = false
         
         context.insert(folder)

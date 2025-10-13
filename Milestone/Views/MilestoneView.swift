@@ -97,12 +97,12 @@ struct MilestoneView: View {
                 .font(.system(size: FontSizes.bodyText, weight: .semibold))
                 .foregroundStyle(milestone.isPinned ? .white : .accent)
                 
-                if !milestone.remark.isEmpty {
-                    Text("\(milestone.remark)")
-                        .font(.system(size: FontSizes.noteText))
-                        .padding(.top, Distances.itemGap)
-                        .foregroundStyle(milestone.isPinned ? .white : .textNote)
-                }
+//                if !milestone.remark.isEmpty {
+//                    Text("\(milestone.remark)")
+//                        .font(.system(size: FontSizes.noteText))
+//                        .padding(.top, Distances.itemGap)
+//                        .foregroundStyle(milestone.isPinned ? .white : .textNote)
+//                }
                 
                 let milestoneFolder = folders.first{ $0.id.uuidString == milestone.folderId }
                 if folder.id == Constants.FOLDER_ALL_UUID {
@@ -194,9 +194,9 @@ struct MilestoneView: View {
                     .disabled(milestone.title.isEmpty)
                 }
                 
-                TextField("添加备注", text: $milestone.remark)
-                    .font(.system(size: 14))
-                    .foregroundColor(.textPlaceholderDisable)
+//                TextField("添加备注", text: $milestone.remark)
+//                    .font(.system(size: 14))
+//                    .foregroundColor(.textPlaceholderDisable)
             }
             .padding(.horizontal, Distances.itemPaddingH)
             .padding(.vertical, Distances.itemPaddingV)
@@ -266,7 +266,7 @@ struct MilestoneView: View {
      */
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
+        formatter.dateFormat = "yyyy年M月d日"
         formatter.locale = Locale(identifier: "zh_CN")
         return formatter
     }
@@ -287,10 +287,10 @@ struct MilestoneView: View {
         
         let folder = Folder(name: "旅行")
         
-        let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", remark: "冲绳一下", date: formatter.date(from: "2025-04-25")!)
+        let milestone1 = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", date: formatter.date(from: "2025-04-25")!)
         milestone1.isPinned = false
         
-        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", remark: "", date: formatter.date(from: "2025-06-25")!)
+        let milestone2 = Milestone(folderId: folder.id.uuidString, title: "大阪之旅", date: formatter.date(from: "2025-06-25")!)
         milestone2.isPinned = false
         
         context.insert(folder)

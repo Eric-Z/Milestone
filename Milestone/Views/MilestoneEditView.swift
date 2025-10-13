@@ -1,21 +1,14 @@
 import SwiftUI
 import SwiftData
 
-struct MilestoneAddView: View {
+struct MilestoneEditView: View {
     
     @Query private var milestones: [Milestone]
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    var folder: Folder
-    
-    @State private var title: String = ""
-    @State private var type: MilestonType = MilestonType.singleDay
-    @State private var allDay: Bool = true
-    @State private var startDate = Date()
-    @State private var endDate = Date()
-    
+    @State var milestone: Milestone
     @State private var showAlert = false
     
     var body: some View {
@@ -26,7 +19,7 @@ struct MilestoneAddView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 16) {
-                    TextField("请输入标题", text: $title)
+                    TextField("请输入标题", text: $milestone.title)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 15)
                         .background(.backgroundSecondary)
@@ -39,7 +32,7 @@ struct MilestoneAddView: View {
                             
                             Spacer()
                             
-                            Picker("", selection: $type) {
+                            Picker("", selection: $milestone.type) {
                                 Text("一天").tag(MilestonType.singleDay)
                                 Text("多天").tag(MilestonType.multiDay)
                             }
@@ -54,20 +47,20 @@ struct MilestoneAddView: View {
                             
                             Spacer()
                             
-                            Toggle(isOn: $allDay) {
+                            Toggle(isOn: $milestone.allDay) {
                             }
                         }
                         .padding(.horizontal, 8)
                         
                         Divider()
                         
-                        if self.type == MilestonType.singleDay {
+                        if self.milestone.type == MilestonType.singleDay {
                             HStack {
                                 Text("时间")
                                 
                                 Spacer()
                                 
-                                DatePicker("时间", selection: $startDate, displayedComponents: self.allDay ? [.date] : [.date, .hourAndMinute])
+                                DatePicker("时间", selection: $milestone.date, displayedComponents: self.milestone.allDay ? [.date] : [.date, .hourAndMinute])
                                     .labelsHidden()
                                     .accentColor(.highlight)
                                     .environment(\.locale, Locale(identifier: "zh_CN"))
@@ -79,7 +72,7 @@ struct MilestoneAddView: View {
                                 
                                 Spacer()
                                 
-                                DatePicker("开始", selection: $startDate, displayedComponents: self.allDay ? [.date] : [.date, .hourAndMinute])
+                                DatePicker("开始", selection: $milestone.date, displayedComponents: self.milestone.allDay ? [.date] : [.date, .hourAndMinute])
                                     .labelsHidden()
                                     .accentColor(.highlight)
                                     .environment(\.locale, Locale(identifier: "zh_CN"))
@@ -93,7 +86,7 @@ struct MilestoneAddView: View {
                                 
                                 Spacer()
                                 
-                                DatePicker("结束", selection: $endDate, displayedComponents: self.allDay ? [.date] : [.date, .hourAndMinute])
+                                DatePicker("结束", selection: $milestone.date2, displayedComponents: self.milestone.allDay ? [.date] : [.date, .hourAndMinute])
                                     .labelsHidden()
                                     .fixedSize()
                                     .accentColor(.highlight)
@@ -129,7 +122,7 @@ struct MilestoneAddView: View {
                                 .fontWeight(.medium)
                         }
                         .tint(.textHighlight1)
-                        .disabled(self.title.isEmpty)
+                        .disabled(self.milestone.title.isEmpty)
                     }
                 }
             }
@@ -150,14 +143,6 @@ struct MilestoneAddView: View {
         if showAlert {
             return
         }
-        
-        let newMilestone = Milestone(folderId: folder.id.uuidString, title: self.title, date: startDate)
-        newMilestone.type = self.type
-        
-        if newMilestone.type == MilestonType.multiDay {
-            newMilestone.date2 = endDate
-        }
-        modelContext.insert(newMilestone)
         try? modelContext.save()
     }
     
@@ -165,14 +150,34 @@ struct MilestoneAddView: View {
      检查里程碑是否存在
      */
     private func exist() -> Bool {
-        if title.isEmpty {
+        if self.milestone.title.isEmpty {
             return false
         }
-        return milestones.contains { $0.title == self.title }
+        return milestones.contains { $0.title == self.milestone.title && $0.id != self.milestone.id }
     }
     
 }
 
 #Preview {
-    MilestoneAddView(folder: Folder(name: "旅行"))
+    do {
+        let schema = Schema([
+            Folder.self, Milestone.self
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+        let context = container.mainContext
+        
+        let folder = Folder(name: "旅行")
+        context.insert(folder)
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let milestone = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", date: formatter.date(from: "2025-04-25")!)
+        
+        context.insert(milestone)
+        
+        return MilestoneEditView(milestone: milestone).modelContainer(container)
+    } catch {
+        return Text("无法创建 ModelContainer")
+    }
 }
