@@ -141,7 +141,7 @@ struct MilestoneAddView: View {
         }
     }
     
-    // MARK: 方法
+    // MARK: - 方法
     /**
      保存里程碑
      */
@@ -155,7 +155,7 @@ struct MilestoneAddView: View {
         newMilestone.type = self.type
         
         if newMilestone.type == MilestonType.multiDay {
-            newMilestone.date2 = endDate
+            newMilestone.date2 = self.endDate
         }
         modelContext.insert(newMilestone)
         try? modelContext.save()

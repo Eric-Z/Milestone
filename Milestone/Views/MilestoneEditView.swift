@@ -134,7 +134,7 @@ struct MilestoneEditView: View {
         }
     }
     
-    // MARK: 方法
+    // MARK: - 方法
     /**
      保存里程碑
      */
@@ -173,6 +173,8 @@ struct MilestoneEditView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let milestone = Milestone(folderId: folder.id.uuidString, title: "冲绳之旅", date: formatter.date(from: "2025-04-25")!)
+        milestone.type = .multiDay
+        milestone.date2 = formatter.date(from: "2025-04-27")!
         
         context.insert(milestone)
         

@@ -23,48 +23,79 @@ struct MilestoneListView: View {
     
     // MARK: - 主视图
     var body: some View {
-        ZStack(alignment: .bottom) {
-            mainContent
-                .zIndex(0)
-            
-            if isAdding {
-                maskLayer
-                    .zIndex(1)
-                
-                addOverlay
-                    .zIndex(2)
-            }
-            
-            if showAddButton {
-                floatingActionButton
-                    .zIndex(3)
-            }
-        }
-        .toolbar { toolbarContent }
-        .onAppear {
-            filterAndSort()
-            
-            if folder.id == Constants.FOLDER_DELETED_UUID {
-                showAddButton = false
-            }
-            
-            if autoShowPublisher.show {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    add()
-                    autoShowPublisher.show = false
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 0) {
+                    Text("\(milestones.count) 个里程碑")
+                        .font(.system(size: 15))
+                        .foregroundStyle(.textNote)
+                        .fontWeight(.semibold)
+                    Spacer()
                 }
+                .padding(.horizontal)
+                
+                if (hasPinned()) {
+                    HStack(spacing: 0) {
+                        Text("置顶")
+                            .bold()
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 20)
+                }
+                
+                List {
+                    
+                }
+                
+                Spacer()
             }
+            .navigationTitle(folder.name)
         }
-        .sheet(isPresented: $showEditFolder) {
-            FolderEditView(folder: folder)
-        }
-        .safeAreaInset(edge: .bottom) {
-            if isSelecting && filteredMilestones.count >= 1 {
-                bottomToolbarView
-                    .background(.areaBackground)
-                    .overlay(Divider(), alignment: .top)
-            }
-        }
+        
+        //        ZStack(alignment: .bottom) {
+        //            mainContent
+        //                .zIndex(0)
+        //
+        //            if isAdding {
+        //                maskLayer
+        //                    .zIndex(1)
+        //
+        //                addOverlay
+        //                    .zIndex(2)
+        //            }
+        //
+        //            if showAddButton {
+        //                floatingActionButton
+        //                    .zIndex(3)
+        //            }
+        //        }
+        //        .toolbar { toolbarContent }
+        //        .onAppear {
+        //            filterAndSort()
+        //
+        //            if folder.id == Constants.FOLDER_DELETED_UUID {
+        //                showAddButton = false
+        //            }
+        //
+        //            if autoShowPublisher.show {
+        //                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        //                    add()
+        //                    autoShowPublisher.show = false
+        //                }
+        //            }
+        //        }
+        //        .sheet(isPresented: $showEditFolder) {
+        //            FolderEditView(folder: folder)
+        //        }
+        //        .safeAreaInset(edge: .bottom) {
+        //            if isSelecting && filteredMilestones.count >= 1 {
+        //                bottomToolbarView
+        //                    .background(.areaBackground)
+        //                    .overlay(Divider(), alignment: .top)
+        //            }
+        //        }
     }
     
     // MARK: - 主视图
@@ -134,7 +165,6 @@ struct MilestoneListView: View {
                     SwipeView {
                         MilestoneView(
                             folder: folder,
-                            onSelectMode: isSelecting,
                             milestone: milestone
                         )
                         .confirmationDialog("里程碑将被删除，此操作不能撤销。", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
@@ -219,11 +249,6 @@ struct MilestoneListView: View {
     private var addOverlay: some View {
         MilestoneAddView(
             folder: folder
-//            showDatePicker: $showDatePicker,
-//            onSave: {
-//                dismiss()
-//                filterAndSort()
-//            }
         )
         .padding(.horizontal, Distances.listPadding)
         .padding(.bottom, 120)
@@ -328,15 +353,15 @@ struct MilestoneListView: View {
             Button {
             } label: {
                 Text(operateAll ? "移动全部" : "移动")
-                .font(.system(size: 17))
-                .foregroundStyle(.textHighlight1)
-                .onTapGesture {
-                    showSelectFolder.toggle()
-                }
-                .sheet(isPresented: $showSelectFolder, onDismiss: filterAndSort) {
-                    let toMoveMilestons = operateAll ? filteredMilestones : filteredMilestones.filter{ $0.isChecked }
-                    FolderSelectionView(milestones: toMoveMilestons, folder: folder)
-                }
+                    .font(.system(size: 17))
+                    .foregroundStyle(.textHighlight1)
+                    .onTapGesture {
+                        showSelectFolder.toggle()
+                    }
+                    .sheet(isPresented: $showSelectFolder, onDismiss: filterAndSort) {
+                        let toMoveMilestons = operateAll ? filteredMilestones : filteredMilestones.filter{ $0.isChecked }
+                        FolderSelectionView(milestones: toMoveMilestons, folder: folder)
+                    }
             }
             
             Spacer()
@@ -355,6 +380,10 @@ struct MilestoneListView: View {
     }
     
     // MARK: - 方法
+    private func hasPinned() -> Bool {
+        return milestones.contains(where: { $0.isPinned })
+    }
+    
     /**
      展示新增里程碑弹窗
      */
