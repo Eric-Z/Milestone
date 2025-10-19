@@ -16,6 +16,7 @@ struct FolderListView: View {
     
     @State private var editingFolder: Folder? = nil
     @State private var selectedFolder: Folder? = nil
+    @State private var folderToDelete: Folder? = nil
     @State private var searchText = ""
     
     let showAddMilestonePublisher = ShowAddMilestonePublisher.shared
@@ -35,7 +36,7 @@ struct FolderListView: View {
                         .swipeActions(allowsFullSwipe: false) {
                             if (folder.type == .normal) {
                                 Button(role: .destructive) {
-                                    self.delete(folder: folder)
+                                    self.folderToDelete = folder
                                 } label: {
                                     Image(systemName: "trash")
                                 }
@@ -112,11 +113,33 @@ struct FolderListView: View {
             .onAppear {
                 refresh()
             }
-            .sheet(isPresented: $showAdd, onDismiss: { refresh() }) {
+            .sheet(isPresented: $showAdd, onDismiss: {
+                refresh()
+            }) {
                 FolderAddView()
             }
-            .sheet(item: $editingFolder, onDismiss: { refresh() }) { folderToEdit in
+            .sheet(item: $editingFolder, onDismiss: {
+                
+                refresh()
+            }) { folderToEdit in
                 FolderEditView(folder: folderToEdit)
+            }
+            .alert(
+                "删除文件夹",
+                isPresented: Binding(
+                    get: { folderToDelete != nil },
+                    set: { if !$0 { folderToDelete = nil } }
+                ),
+                presenting: folderToDelete
+            ) { folder in
+                Button("删除", role: .destructive) {
+                    delete(folder: folder)
+                }
+                Button("取消", role: .cancel) {
+                    folderToDelete = nil
+                }
+            } message: { folder in
+                Text("这个文件夹将被删除。此操作不能撤销。")
             }
         }
     }
@@ -136,39 +159,44 @@ struct FolderListView: View {
                 milestone.deleteDate = Date()
             }
         }
-        modelContext.delete(folder)
-        try? modelContext.save()
         
-        refresh()
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            modelContext.delete(folder)
+            try? modelContext.save()
+            self.folderToDelete = nil
+            self.refresh()
+        }
     }
     
     /**
      刷新文件夹列表
      */
     private func refresh() {
-        self.allFolders = []
-        self.allFolders.insert(contentsOf: folders, at: 0)
-        
-        // 添加全部里程碑文件夹
-        let allFolder = Folder(name: Constants.FOLDER_ALL)
-        allFolder.id = Constants.FOLDER_ALL_UUID
-        allFolder.type = .all
-        self.allFolders.insert(allFolder, at: 0)
-        
-        // 添加置顶文件夹
-        if self.milestones.first(where: { $0.isPinned }) != nil {
-            let pinnedFolder = Folder(name: Constants.FOLDER_PINNED)
-            pinnedFolder.id = Constants.FOLDER_PINNED_UUID
-            pinnedFolder.type = .pinned
-            self.allFolders.insert(pinnedFolder, at: 1)
-        }
-        
-        // 添加最近删除文件夹
-        if self.milestones.first(where: { $0.deleteDate != nil }) != nil {
-            let deletedFolder = Folder(name: Constants.FOLDER_DELETED)
-            deletedFolder.id = Constants.FOLDER_DELETED_UUID
-            deletedFolder.type = .deleted
-            self.allFolders.insert(deletedFolder, at: allFolders.count)
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            self.allFolders = []
+            self.allFolders.insert(contentsOf: folders, at: 0)
+            
+            // 添加全部里程碑文件夹
+            let allFolder = Folder(name: Constants.FOLDER_ALL)
+            allFolder.id = Constants.FOLDER_ALL_UUID
+            allFolder.type = .all
+            self.allFolders.insert(allFolder, at: 0)
+            
+            // 添加置顶文件夹
+            if self.milestones.first(where: { $0.isPinned }) != nil {
+                let pinnedFolder = Folder(name: Constants.FOLDER_PINNED)
+                pinnedFolder.id = Constants.FOLDER_PINNED_UUID
+                pinnedFolder.type = .pinned
+                self.allFolders.insert(pinnedFolder, at: 1)
+            }
+            
+            // 添加最近删除文件夹
+            if self.milestones.first(where: { $0.deleteDate != nil }) != nil {
+                let deletedFolder = Folder(name: Constants.FOLDER_DELETED)
+                deletedFolder.id = Constants.FOLDER_DELETED_UUID
+                deletedFolder.type = .deleted
+                self.allFolders.insert(deletedFolder, at: allFolders.count)
+            }
         }
     }
     

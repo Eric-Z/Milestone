@@ -38,7 +38,6 @@ struct MilestoneView: View {
                     }
                 }
                 .font(.system(size: FontSizes.bodyText, weight: .semibold))
-                .foregroundStyle(milestone.isPinned ? .white : .accent)
                 
                 if (folder.type == .all) {
                     HStack(spacing: 0) {
@@ -54,7 +53,6 @@ struct MilestoneView: View {
                     .padding(.top, 4)
                 }
             }
-            .padding(.vertical, 10)
             
             Spacer()
             
@@ -75,7 +73,6 @@ struct MilestoneView: View {
     }
 }
 
-// 更新 Preview Provider 以包含 onTapToEdit
 #Preview {
     do {
         let schema = Schema([

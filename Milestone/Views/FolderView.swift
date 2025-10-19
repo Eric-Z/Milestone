@@ -11,6 +11,7 @@ struct FolderView: View {
     var isEditMode = false
     
     @State private var showEditFolder = false
+    @State private var folderToDelete: Folder? = nil
     
     // MARK: - 主视图
     var body: some View {
@@ -45,14 +46,13 @@ struct FolderView: View {
                         Button(action: {
                             self.showEditFolder = true
                         }) {
-                            Label("Rename Folder", systemImage: "pencil")
+                            Label("重新命名", systemImage: "pencil")
                         }
                         
                         Button(role: .destructive, action: {
-                            modelContext.delete(folder)
-                            try? modelContext.save()
+                            self.folderToDelete = folder
                         }) {
-                            Label("Delete", systemImage: "trash")
+                            Label("删除", systemImage: "trash")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -72,6 +72,23 @@ struct FolderView: View {
         .sheet(isPresented: $showEditFolder) {
             FolderEditView(folder: folder)
         }
+        .alert(
+            "删除文件夹",
+            isPresented: Binding(
+                get: { folderToDelete != nil },
+                set: { if !$0 { folderToDelete = nil } }
+            ),
+            presenting: folderToDelete
+        ) { folder in
+            Button("删除", role: .destructive) {
+                delete(folder: folder)
+            }
+            Button("取消", role: .cancel) {
+                folderToDelete = nil
+            }
+        } message: { folder in
+            Text("这个文件夹将被删除。此操作不能撤销。")
+        }
     }
     
     // MARK: -方法
@@ -89,6 +106,28 @@ struct FolderView: View {
             return self.milestones.filter { $0.isPinned }.count
         }
         return self.milestones.filter { $0.folderId == folder.id.uuidString }.count
+    }
+    
+    /**
+     删除文件夹
+     */
+    private func delete(folder: Folder) {
+        if (folder.type != .normal) {
+            return
+        }
+        
+        for milestone in self.milestones {
+            if milestone.folderId == folder.id.uuidString {
+                milestone.folderId = Constants.FOLDER_DELETED_UUID.uuidString
+                milestone.deleteDate = Date()
+            }
+        }
+        
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            modelContext.delete(folder)
+            try? modelContext.save()
+            self.folderToDelete = nil
+        }
     }
 }
 
