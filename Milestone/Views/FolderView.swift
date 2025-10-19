@@ -128,6 +128,8 @@ struct FolderView: View {
             try? modelContext.save()
             self.folderToDelete = nil
         }
+        
+        NotificationCenter.default.post(name: Notification.Name("FolderDeleted"), object: nil)
     }
 }
 

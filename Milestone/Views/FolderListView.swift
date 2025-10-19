@@ -113,6 +113,9 @@ struct FolderListView: View {
             .onAppear {
                 refresh()
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("FolderDeleted"))) { _ in
+                refresh()
+            }
             .sheet(isPresented: $showAdd, onDismiss: {
                 refresh()
             }) {
